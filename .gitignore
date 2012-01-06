@@ -1,0 +1,13 @@
+.cache
+/server.conf
+/project/boot
+/project/project
+/project/target
+/target
+/.idea
+/.idea_modules
+/lib
+.classpath
+.project
+
+*~
