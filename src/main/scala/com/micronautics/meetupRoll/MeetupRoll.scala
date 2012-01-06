@@ -16,7 +16,7 @@ object MeetupRoll extends App {
   private val meetupGroup = Option(properties.getProperty("meetupGroup")).orElse(Some("Bay-Area-Scala-Enthusiasts")).get
   private val eventId     = Option(properties.getProperty("eventId"))    .orElse(Some("44582312")).get
   
-  private def groupUrl = "http://www.meetup.com/" + meetupGroup + "/events/" + eventId + "/printrsvp/?togglePhotos=off&pop=true"
+  private def groupUrl = "http://www.meetup.com/" + meetupGroup + "/events/" + eventId + "/printrsvp"
 
   private def names = (for (m <- (Names findAllIn httpGet(groupUrl)).matchData)
     yield m.group(1) + " " + m.group(2)).toIndexedSeq
