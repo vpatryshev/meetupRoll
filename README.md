@@ -2,7 +2,7 @@ http://www.meetup.com/Bay-Area-Scala-Enthusiasts/events/43944352/printrsvp/?togg
 
 <tr id="member_13069971">
 <td>
-<span class="D_name">Rafael Coss
+<span class="D_name">Firstname Lastname
 <span class="D_chapterTitle">
 
 </span>
