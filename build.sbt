@@ -15,6 +15,6 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "com.typesafe.akka"         %  "akka-actor" % "latest.milestone"   % "compile" withSources(),
-  "org.apache.httpcomponents" % "httpclient"  % "latest.integration" % "compile" withSources(),
-  "org.scalatest"     %% "scalatest"  % "latest.integration"  % "test"    withSources()
+  "org.apache.httpcomponents" %  "httpclient" % "latest.integration" % "compile" withSources(),
+  "org.scalatest"             %% "scalatest"  % "latest.integration"  % "test"    withSources()
 )
