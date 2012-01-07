@@ -14,6 +14,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.apache.httpcomponents" %  "httpclient" % "latest.integration" % "compile" withSources(),
-  "org.scalatest"             %% "scalatest"  % "latest.integration"  % "test"    withSources()
+  "com.github.scala-incubator.io" %% "scala-io-core" % "latest.integration" % "compile" withSources(),
+  "com.github.scala-incubator.io" %% "scala-io-file" % "latest.integration" % "compile" withSources(),
+  "org.scalatest"                 %% "scalatest"     % "latest.integration" % "test"    withSources()
 )
