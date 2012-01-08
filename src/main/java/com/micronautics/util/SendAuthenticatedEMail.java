@@ -34,13 +34,6 @@ public class SendAuthenticatedEMail {
 	private int smtpPort;
 
 
-	public static void main(String args[]) throws Exception {
-		SendAuthenticatedEMail smtpMailSender = new SendAuthenticatedEMail();
-		System.out.println("Sending mail ...");
-		smtpMailSender.sendMail("mslinn@gmail.com", "Test Subject", "Test message.", "mslinn@gmail.com");
-		System.out.println("\nDone.");
-	}
-
 	public static void sendEmail(String recipients, String subject, String body, String from) {
 		try {
 			new SendAuthenticatedEMail().sendMail(recipients, subject, body, from);
