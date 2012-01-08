@@ -1,7 +1,16 @@
 package com.micronautics.util;
-/* Mike Slinn modified http://www.javacommerce.com/displaypage.jsp?name=javamail.sql&id=18274
-Send authenticated SMTP email. 
-Author : Sudhir Ancha */
+
+/** Mike Slinn modified http://www.javacommerce.com/displaypage.jsp?name=javamail.sql&id=18274
+ * Send authenticated SMTP email. Properties must be specified in meetup.properties
+ * <pre>
+ * smtpHost = smtp.googlemail.com
+ * smtpUser = user@gmail.com
+ * smtpPwd  = myPass
+ * smtpPort = 465
+ * </pre>
+ * @see http://javamail.kenai.com/nonav/javadocs/javax/mail/package-summary.html
+ * @author Sudhir Ancha
+ * @author Mike Slinn */
 
 import java.io.IOException;
 import java.io.InputStream;
