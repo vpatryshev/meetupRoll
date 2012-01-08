@@ -6,6 +6,7 @@
 .project
 .settings
 server.conf
+src/main/resources/meetup.properties
 /lib
 /project/boot
 /project/project

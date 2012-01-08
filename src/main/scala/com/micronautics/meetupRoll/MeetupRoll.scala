@@ -1,10 +1,15 @@
 package com.micronautics.meetupRoll
 
-import java.util.Properties
 import java.net.URL
-import scalax.io._
-import scalax.io.JavaConverters._
+import java.util.Properties
+
+import scala.collection.mutable.ListMap
 import scala.util.Random
+
+import com.micronautics.util.SendMailUsingAuthentication
+
+import scalax.io.JavaConverters.asInputConverter
+import scalax.io.Codec
 
 
 object MeetupRoll extends App {
@@ -35,15 +40,25 @@ object MeetupRoll extends App {
     }
     properties
   }
-  
+    
   val aPage = attendeesPage
+  var winners = new ListMap[String,String].empty
   println("Parsed " + names.length + " names from " + groupUrl)
   while (true) {
     val name = randomName
     names -= name
     println("Winner: " + name)
-    val line = Console.readLine("Type q to exit, Enter to select another winner> ")
-    if (line=="q")
+    val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit> ")
+    if (token=="") {
+      var winString = "Winners are:\n";
+      for (winner <- winners) 
+        winString += "  " + winner._1 + ": " + winner._2 + "\n"
+      println(winString + "\nSending email so you remember...")
+      val mailer = new SendMailUsingAuthentication();
+      mailer.postMail(Array("mslinn@micronauticsresearch.com"), "Giveaway winners", winString, "mslinn@micronauticsresearch.com")
+      println("Done.")
       System.exit(0)
+    }
+    winners += name -> token
   }
 }
