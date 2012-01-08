@@ -1,17 +1,7 @@
 package com.micronautics.util;
-/* From http://www.javacommerce.com/displaypage.jsp?name=javamail.sql&id=18274
-Some SMTP servers require a username and password authentication before you
-can use their Server for Sending mail. This is most common with couple
-of ISP's who provide SMTP Address to Send Mail.
-
-This Program gives any example on how to do SMTP Authentication
-(User and Password verification)
-
-This is a free source code and is provided as it is without any warranties and
-it can be used in any your code for free.
-
-Author : Sudhir Ancha
- */
+/* Mike Slinn modified http://www.javacommerce.com/displaypage.jsp?name=javamail.sql&id=18274
+Send authenticated SMTP email. 
+Author : Sudhir Ancha */
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,34 +16,13 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-/*
- To use this program, change values for the following three constants,
-
- SMTP_HOST_NAME -- Has your SMTP Host Name
- SMTP_AUTH_USER -- Has your SMTP Authentication UserName
- SMTP_AUTH_PWD  -- Has your SMTP Authentication Password
-
- Next change values for fields
-
- emailMsgTxt  -- Message Text for the Email
- emailSubjectTxt  -- Subject for email
- emailFromAddress -- Email Address whose name will appears as "from" address
-
- Next change value for "emailList".
- This String array has List of all Email Addresses to Email Email needs to be sent to.
-
-
- Next to run the program, execute it as follows,
-
- SendMailUsingAuthentication authProg = new SendMailUsingAuthentication();
- */
-
 public class SendMailUsingAuthentication {
 	private String smtpHost;
 	private String smtpUser;
 	private String smtpPwd;
 	private int smtpPort;
 
+	
 	private static final String emailMsgTxt = "Test message.";
 	private static final String emailSubjectTxt = "Test Subject";
 	private static final String emailFromAddress = "mslinn@micronauticsresearch.com";
@@ -68,6 +37,7 @@ public class SendMailUsingAuthentication {
 		System.out.println("\nDone.");
 	}
 
+	
 	public void postMail(String recipients[], String subject, String message, String from) throws MessagingException {
 		boolean debug = false;
 
@@ -114,7 +84,7 @@ public class SendMailUsingAuthentication {
 			smtpHost = properties.getProperty("smtpHost");
 			smtpPort = Integer.parseInt(properties.getProperty("smtpPort"));
 			smtpUser = properties.getProperty("smtpUser");
-			smtpPwd = properties.getProperty("smtpPwd");
+			smtpPwd  = properties.getProperty("smtpPwd");
 		}
 	}
 
@@ -128,5 +98,4 @@ public class SendMailUsingAuthentication {
 			return new PasswordAuthentication(username, password);
 		}
 	}
-
 }
