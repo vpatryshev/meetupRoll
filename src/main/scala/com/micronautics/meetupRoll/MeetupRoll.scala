@@ -50,12 +50,14 @@ object MeetupRoll extends App {
     println("Winner: " + name)
     val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
     if (token=="") {
-      var winString = "Winners are:\n";
-      for (winner <- winners) 
-        winString += "  " + winner._1 + ": " + winner._2 + "\n"
-      println(winString + "\nSending email so you remember...")
-      SendAuthenticatedEMail.sendEmail(properties.getProperty("smtpUser"), "Giveaway winners", winString, properties.getProperty("smtpUser"))
-      println("Done.")
+      if (winners.size>0) {
+	    var winString = "Winners are:\n";
+        for (winner <- winners) 
+	      winString += "  " + winner._1 + ": " + winner._2 + "\n"
+	    println(winString + "\nSending email so you remember...")
+	    SendAuthenticatedEMail.sendEmail(properties.getProperty("smtpUser"), "Giveaway winners", winString, properties.getProperty("smtpUser"))
+	  }
+	  println("Done.")
       System.exit(0)
     }
     winners += name -> token
