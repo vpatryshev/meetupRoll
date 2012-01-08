@@ -6,7 +6,7 @@ import java.util.Properties
 import scala.collection.mutable.ListMap
 import scala.util.Random
 
-import com.micronautics.util.SendMailUsingAuthentication
+import com.micronautics.util.SendAuthenticatedEMail
 
 import scalax.io.JavaConverters.asInputConverter
 import scalax.io.Codec
@@ -48,14 +48,13 @@ object MeetupRoll extends App {
     val name = randomName
     names -= name
     println("Winner: " + name)
-    val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit> ")
+    val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
     if (token=="") {
       var winString = "Winners are:\n";
       for (winner <- winners) 
         winString += "  " + winner._1 + ": " + winner._2 + "\n"
       println(winString + "\nSending email so you remember...")
-      val mailer = new SendMailUsingAuthentication();
-      mailer.postMail(Array("mslinn@micronauticsresearch.com"), "Giveaway winners", winString, "mslinn@micronauticsresearch.com")
+      SendAuthenticatedEMail.sendEmail(properties.getProperty("smtpUser"), "Giveaway winners", winString, properties.getProperty("smtpUser"))
       println("Done.")
       System.exit(0)
     }
