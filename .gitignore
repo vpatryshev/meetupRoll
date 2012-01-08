@@ -1,13 +1,14 @@
 !.gitkeep 
 .cache
 .classpath
-.project
 .idea
 .idea_modules
+.project
+.settings
 server.conf
+/lib
 /project/boot
 /project/project
 /project/target
 /target
-/lib
 *~
