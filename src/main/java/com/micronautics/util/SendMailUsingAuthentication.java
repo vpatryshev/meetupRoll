@@ -35,7 +35,7 @@ public class SendMailUsingAuthentication {
 	private static final String emailSubjectTxt = "Test Subject";
 	private static final String emailFromAddress = "mslinn@micronauticsresearch.com";
 
-	/** List of Email addresses to who email needs to be sent to */
+	/** List of Email addresses to whom email needs to be sent */
 	private static final String[] emailList = { emailFromAddress };
 
 	public static void main(String args[]) throws Exception {
@@ -98,10 +98,7 @@ public class SendMailUsingAuthentication {
 		}
 	}
 
-	/**
-	 * SimpleAuthenticator is used to do simple authentication when the SMTP
-	 * server requires it.
-	 */
+	/** Does simple authentication when the SMTP server requires it. */
 	private class SMTPAuthenticator extends javax.mail.Authenticator {
 
 		public PasswordAuthentication getPasswordAuthentication() {
