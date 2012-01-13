@@ -1,8 +1,11 @@
+// see https://github.com/sbt/sbt-assembly
+import AssemblyKeys._ // put this at the top of the file
+
 organization := "Micronautics Research"
 
 name := "MeetupRoll"
 
-version := "0.1-SNAPSHOT"
+version := "0.1"
 
 scalacOptions ++= Seq("-deprecation")
 
@@ -19,3 +22,5 @@ libraryDependencies ++= Seq(
   "javax.mail"                    %  "mail"          % "latest.milestone"   % "compile" withSources(),
   "org.scalatest"                 %% "scalatest"     % "latest.integration" % "test"    withSources()
 )
+
+seq(assemblySettings: _*)
