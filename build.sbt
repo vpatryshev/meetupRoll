@@ -10,10 +10,9 @@ version := "0.1"
 scalacOptions ++= Seq("-deprecation")
 
 resolvers ++= Seq(
-  "Typesafe Snapshots"    at "http://repo.typesafe.com/typesafe/snapshots",
-  "Typesafe Releases"     at "http://repo.typesafe.com/typesafe/releases",
-  "Scala-Tools Snapshots" at "http://scala-tools.org/repo-snapshots",
-  "Scala Tools Releases"  at "http://scala-tools.org/repo-releases"
+  "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots",
+  "Typesafe Releases"  at "http://repo.typesafe.com/typesafe/releases",
+  ScalaToolsSnapshots  // ScalaToolsReleases is included by default
 )
 
 libraryDependencies ++= Seq(
