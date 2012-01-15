@@ -17,10 +17,10 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.github.scala-incubator.io" %% "scala-io-core" % "latest.integration" % "compile" withSources(),
-  "com.github.scala-incubator.io" %% "scala-io-file" % "latest.integration" % "compile" withSources(),
-  "javax.mail"                    %  "mail"          % "latest.milestone"   % "compile" withSources(),
-  "org.scalatest"                 %% "scalatest"     % "latest.integration" % "test"    withSources()
+  "com.github.scala-incubator.io" %% "scala-io-core" % "latest.milestone"   withSources(),
+  "com.github.scala-incubator.io" %% "scala-io-file" % "latest.milestone"   withSources(),
+  "javax.mail"                    %  "mail"          % "latest.integration" withSources(),
+  "org.scalatest"                 %% "scalatest"     % "latest.milestone"   % "test" withSources()
 )
 
 seq(assemblySettings: _*)
