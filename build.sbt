@@ -1,3 +1,5 @@
+import AssemblyKeys._ // put this at the top of the file
+
 organization := "Micronautics Research"
 
 name := "MeetupRoll"
@@ -19,3 +21,5 @@ libraryDependencies ++= Seq(
   "javax.mail"                    %  "mail"          % "latest.milestone"   % "compile" withSources(),
   "org.scalatest"                 %% "scalatest"     % "latest.integration" % "test"    withSources()
 )
+
+seq(assemblySettings: _*)
