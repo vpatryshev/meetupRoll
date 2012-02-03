@@ -1,25 +1,25 @@
+// see https://github.com/sbt/sbt-assembly
 import AssemblyKeys._ // put this at the top of the file
 
 organization := "Micronautics Research"
 
 name := "MeetupRoll"
 
-version := "0.1-SNAPSHOT"
+version := "0.1"
 
 scalacOptions ++= Seq("-deprecation")
 
 resolvers ++= Seq(
-  "Typesafe Snapshots"    at "http://repo.typesafe.com/typesafe/snapshots",
-  "Typesafe Releases"     at "http://repo.typesafe.com/typesafe/releases",
-  "Scala-Tools Snapshots" at "http://scala-tools.org/repo-snapshots",
-  "Scala Tools Releases"  at "http://scala-tools.org/repo-releases"
+  "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots",
+  "Typesafe Releases"  at "http://repo.typesafe.com/typesafe/releases",
+  ScalaToolsSnapshots  // ScalaToolsReleases is included by default
 )
 
 libraryDependencies ++= Seq(
-  "com.github.scala-incubator.io" %% "scala-io-core" % "latest.integration" % "compile" withSources(),
-  "com.github.scala-incubator.io" %% "scala-io-file" % "latest.integration" % "compile" withSources(),
-  "javax.mail"                    %  "mail"          % "latest.milestone"   % "compile" withSources(),
-  "org.scalatest"                 %% "scalatest"     % "latest.integration" % "test"    withSources()
+  "com.github.scala-incubator.io" %% "scala-io-core" % "latest.milestone"   withSources(),
+  "com.github.scala-incubator.io" %% "scala-io-file" % "latest.milestone"   withSources(),
+  "javax.mail"                    %  "mail"          % "latest.integration" withSources(),
+  "org.scalatest"                 %% "scalatest"     % "latest.milestone"   % "test" withSources()
 )
 
 seq(assemblySettings: _*)
