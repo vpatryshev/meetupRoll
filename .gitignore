@@ -8,8 +8,6 @@
 server.conf
 src/main/resources/meetup.properties
 /lib
-/project/boot
-/project/project
-/project/target
+/project
 /target
 *~

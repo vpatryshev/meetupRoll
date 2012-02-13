@@ -22,4 +22,5 @@ libraryDependencies ++= Seq(
   "org.scalatest"                 %% "scalatest"     % "latest.milestone"   % "test" withSources()
 )
 
+// add all the settings in assemblySettings into each SBT project
 seq(assemblySettings: _*)
