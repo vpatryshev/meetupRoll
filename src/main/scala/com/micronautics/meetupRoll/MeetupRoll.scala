@@ -46,7 +46,10 @@ object MeetupRoll extends App {
   private def readProps = {
     val properties = new Properties()
     val in = MeetupRoll.getClass().getClassLoader().getResourceAsStream("meetup.properties")
-    if (in!=null) {
+    if (in==null) {
+    	System.err.println("Could not read meetup.properties, aborting.");
+    	System.exit(1);
+    } else {
       properties.load(in)
       in.close()
     }
