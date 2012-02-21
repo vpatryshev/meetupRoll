@@ -1,7 +1,6 @@
 package com.micronautics.meetupRoll
 
 import java.net.URL
-import java.util.Properties
 
 import scala.collection.mutable.ListMap
 import scala.util.Random
@@ -10,10 +9,13 @@ import com.micronautics.util.SendAuthenticatedEMail
 
 import scalax.io.JavaConverters.asInputConverter
 import scalax.io.Codec
+import java.util.{Date, Calendar, Properties}
+import java.text.{ParseException, SimpleDateFormat}
 
 
 object MeetupRoll extends App {
   private val random = new Random()
+  private val Date = """<span class="date">(.*)</span>""".r
   private val Title = """<title>Meetup.com &rsaquo; RSVP List: (.*)</title>""".r
   private val Names = """<span class="D_name">(\S+) (\S*)""".r
   private val properties = readProps
@@ -23,6 +25,11 @@ object MeetupRoll extends App {
   private def groupUrl = "http://www.meetup.com/" + meetupGroup + "/events/" + eventId + "/printrsvp"
   private val attendeesPage = new URL(groupUrl).asInput.slurpString(Codec.UTF8)
   private val title = (Title findFirstMatchIn attendeesPage) match {
+    case Some(x) => x group(1)
+    case None => ""
+  }
+  
+  private val date = (Date findFirstMatchIn attendeesPage) match {
     case Some(x) => x group(1)
     case None => ""
   }
@@ -45,26 +52,48 @@ object MeetupRoll extends App {
     }
     properties
   }
+  
+  private def isEventToday(date:String):Boolean = {
+    val eventDate:Date = try {
+      new SimpleDateFormat("EEEE, MMMMM dd, yyyy HH:mm a").parse(date)
+    } catch {
+      case pe:ParseException =>
+        println(pe)
+        System.exit(1)
+        new Date()
+    }
+    val cal1 = Calendar.getInstance()
+    val cal2 = Calendar.getInstance()
+    cal1.setTime(new Date())
+    cal2.setTime(eventDate)
+    val sameDay = cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+      cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
+    sameDay
+  }
     
   val aPage = attendeesPage
   var winners = new ListMap[String,String].empty
-  println("Parsed " + names.length + " names from \"" + title + "\"\n(" +groupUrl + ")")
+  println("Parsed " + names.length + " names from \"" + title + "\"")
+  println("Scheduled for " + date)
+  println(groupUrl)
+  if (!isEventToday(date))
+    println("\n*** THIS EVENT IS NOT HELD TODAY ***\n")
   while (true) {
-    val name = randomName
-    names -= name
-    println("Winner: " + name)
-    val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
-    if (token=="") {
-      if (winners.size>0) {
-	    var winString = "Winners are:\n";
-        for (winner <- winners) 
-	      winString += "  " + winner._1 + ": " + winner._2 + "\n"
-	    println(winString + "\nSending email so you remember...")
-	    SendAuthenticatedEMail.sendEmail(properties.getProperty("smtpUser"), "Giveaway winners", winString, properties.getProperty("smtpUser"))
-	  }
-	  println("Done.")
-      System.exit(0)
+      val name = randomName
+      names -= name
+      println("Winner: " + name)
+      val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
+      if (token=="") {
+        if (winners.size>0) {
+          var winString = "Winners are:\n";
+          for (winner <- winners)
+            winString += "  " + winner._1 + ": " + winner._2 + "\n"
+          println(winString + "\nSending email so you remember...")
+          SendAuthenticatedEMail.sendEmail(properties.getProperty("smtpUser"), "Giveaway winners", winString, properties.getProperty("smtpUser"))
+        }
+        println("Done.")
+        System.exit(0)
+      }
+      winners += name -> token
     }
-    winners += name -> token
-  }
 }
