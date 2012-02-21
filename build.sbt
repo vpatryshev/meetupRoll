@@ -9,6 +9,8 @@ version := "0.1"
 
 scalacOptions ++= Seq("-deprecation")
 
+logLevel := Level.Error
+
 resolvers ++= Seq(
   "Typesafe Snapshots" at "http://repo.typesafe.com/typesafe/snapshots",
   "Typesafe Releases"  at "http://repo.typesafe.com/typesafe/releases",

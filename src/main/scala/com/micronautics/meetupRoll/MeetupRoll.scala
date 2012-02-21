@@ -77,7 +77,7 @@ object MeetupRoll extends App {
 
   val aPage = attendeesPage
   var winners = new ListMap[String, String].empty
-  println("Parsed " + names.length + " names from \"" + title + "\"")
+  println("\n\nParsed " + names.length + " names from \"" + title + "\"")
   println("Scheduled for " + date)
   println(groupUrl)
   if (!isEventToday(date))
