@@ -14,6 +14,7 @@ import scalax.io.Codec
 
 object MeetupRoll extends App {
   private val random = new Random()
+  private val Title = """<title>Meetup.com &rsaquo; RSVP List: (.*)</title>""".r
   private val Names = """<span class="D_name">(\S+) (\S*)""".r
   private val properties = readProps
   private val meetupGroup = Option(properties.getProperty("meetupGroup")).orElse(Some("Bay-Area-Scala-Enthusiasts")).get
@@ -21,6 +22,10 @@ object MeetupRoll extends App {
   
   private def groupUrl = "http://www.meetup.com/" + meetupGroup + "/events/" + eventId + "/printrsvp"
   private val attendeesPage = new URL(groupUrl).asInput.slurpString(Codec.UTF8)
+  private val title = (Title findFirstMatchIn attendeesPage) match {
+    case Some(x) => x group(1)
+    case None => ""
+  }
 
   /** Mutable list of full names. If a member did not specify a last name they will not appear in the list.
     * Names that are chosen are removed so they cannot be chosen again. */
@@ -43,7 +48,7 @@ object MeetupRoll extends App {
     
   val aPage = attendeesPage
   var winners = new ListMap[String,String].empty
-  println("Parsed " + names.length + " names from " + groupUrl)
+  println("Parsed " + names.length + " names from \"" + title + "\"\n(" +groupUrl + ")")
   while (true) {
     val name = randomName
     names -= name
