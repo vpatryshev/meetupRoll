@@ -15,6 +15,10 @@ import java.text.{ParseException, SimpleDateFormat}
 
 object MeetupRoll extends App {
   private val random = new Random()
+
+  /** Events on front page
+   * TODO parse them and find today's event, or the next upcoming one, or the most recent one if none are upcoming */
+  private val Event = """<a href="http://www.meetup.com/.*?/events/(.*?)/" itemprop="url" class="omnCamp omnrv_rv13"><span itemprop="summary">(.*?)</span></a>""".r
   private val Date = """<span class="date">(.*)</span>""".r
   private val Title = """<title>Meetup.com &rsaquo; RSVP List: (.*)</title>""".r
   private val Names = """<span class="D_name">(\S+) (\S*)""".r
