@@ -3,9 +3,13 @@ import AssemblyKeys._ // put this at the top of the file
 
 organization := "Micronautics Research"
 
-name := "MeetupRoll"
+name := "Meetup Roll"
 
-version := "0.1"
+version := "0.3"
+
+scalaVersion := "2.9.1-1"
+
+scalaVersion in update := "2.9.1"
 
 scalacOptions ++= Seq("-deprecation")
 
@@ -21,6 +25,8 @@ libraryDependencies ++= Seq(
   "com.github.scala-incubator.io" %% "scala-io-core" % "latest.milestone"   withSources(),
   "com.github.scala-incubator.io" %% "scala-io-file" % "latest.milestone"   withSources(),
   "javax.mail"                    %  "mail"          % "latest.integration" withSources(),
+  "org.scala-tools.time"          %  "time_2.9.1"    % "0.5"                ,
+  "org.scala-lang"                %  "scala-swing"   % "2.9.1-1"            withSources(),
   "org.scalatest"                 %% "scalatest"     % "latest.milestone"   % "test" withSources()
 )
 

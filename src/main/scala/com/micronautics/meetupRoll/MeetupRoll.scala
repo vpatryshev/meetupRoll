@@ -32,6 +32,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 object MeetupRoll extends App {
   private val random = new Random()
+  Gui.startup(null)
 
   /** Events on front page
    * TODO parse them and find today's event, or the next upcoming one, or the most recent one if none are upcoming */
@@ -56,7 +57,7 @@ object MeetupRoll extends App {
     case None => ""
   }
 
-  /**Mutable list of full names. If a member did not specify a last name they will not appear in the list.
+  /**Mutable list of full names. If a member did not specify a last meetupName they will not appear in the list.
    * Names that are chosen are removed so they cannot be chosen again. */
   private var names = (for (m <- (Names findAllIn attendeesPage).matchData)
   yield m.group(1) + " " + m.group(2)).toList.toBuffer
@@ -107,7 +108,7 @@ object MeetupRoll extends App {
     val name = randomName
     names -= name
     println("Winner: " + name)
-    val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
+    val token = Console.readLine("Type the meetupName of the prize " + name + " won, or type Enter to exit > ")
     if (token == "") {
       if (winners.size > 0) {
         var winString = "Winners are:\n";
