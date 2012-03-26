@@ -29,10 +29,7 @@ case class Meetup(val meetupName: String, val eventTitle: String, val dateTime: 
 
 case class PrizeWon(val winnerName: String, val prize: String, val email: String)
 
-class Model(
-  val meetups: ArrayBuffer[Meetup],
-  val prizesWon: ArrayBuffer[PrizeWon]
-) {
+class Model(val meetups: ArrayBuffer[Meetup], val prizesWon: ArrayBuffer[PrizeWon]) {
   def meetupsDP = new AbstractTableModel() {
       def getColumnCount = { 3 }
       def getRowCount    = { 2 }

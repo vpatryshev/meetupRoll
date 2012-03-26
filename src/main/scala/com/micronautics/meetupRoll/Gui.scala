@@ -4,12 +4,12 @@ import com.lamatek.swingextras.JNumericField
 import java.io.File
 import com.micronautics.util.{SortedProperties, PersistableApp}
 import com.micronautics.Attribution
-import scala.swing.{BoxPanel, Button,  Label, ScrollPane, TextField, Table, Orientation, MainFrame, SimpleSwingApplication}
-import java.awt.{Point, Dimension, Color}
+import java.awt.{Component, Point, Dimension, Color}
 import javax.swing.{UIManager, WindowConstants}
 import javax.swing.table.AbstractTableModel
 import scala.swing.event.{ButtonClicked, WindowClosing, WindowOpened}
 import javax.swing.border.EmptyBorder
+import scala.swing.{TabbedPane, BoxPanel, Button, Label, ScrollPane, TextField, Table, Orientation, MainFrame, SimpleSwingApplication}
 
 /**
   * @author Mike Slinn
@@ -38,83 +38,109 @@ object Gui extends SimpleSwingApplication with PersistableApp {
   private val propertyFileName = "meetupRoll.properties"
 
   val top = new MainFrame {
+    var tabbedPane = new TabbedPane
     val colorEventIsToday = Color.green
     val colorEventIsNotToday = Color.red
-    val textUrl = new TextField {
-      maximumSize = new Dimension(Int.MaxValue, itemHeight)
-    }
-    val textPrize = new TextField {
-      maximumSize = new Dimension(Int.MaxValue, itemHeight)
-    }
-    val labelRandomName = new Label
-    val buttonSize = new Dimension(75, itemHeight)
-    val buttonAddPrize = new Button("Add")    { maximumSize = buttonSize }
-    val buttonAddUrl   = new Button("Add")    { maximumSize = buttonSize }
-    val buttonDelUrl   = new Button("Del")    { maximumSize = buttonSize }
-    val buttonRoll     = new Button("Roll")   { maximumSize = buttonSize }
-    val buttonFinish   = new Button("Finish") { maximumSize = buttonSize }
-    val numericFieldPrizeQty = new JNumericField(2, JNumericField.INTEGER)  {
-      setMaximumSize(new Dimension(Int.MaxValue, itemHeight))
+    val sizeOfButtons = new Dimension(75, itemHeight)
+    val buttonFinish = new Button("Finish") {
+      maximumSize = sizeOfButtons
+      tooltip = "Send email summarizing winners and shut down"
     }
 
-    peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
-    title = "Meetup Roll v0.1"
-    size = new Dimension(575, 900)
-    try {
-      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
-    } catch {
-      case ex => println("Error setting native LAF: " + ex)
-    }
+    val page1 = new BoxPanel(Orientation.Vertical) {
+      val textUrl = new TextField {
+        maximumSize = new Dimension(Int.MaxValue, itemHeight)
+        tooltip = "Meetup URL"
+      }
+      val buttonAddUrl = new Button("Add") { maximumSize = sizeOfButtons; tooltip = "URL for new meetup" }
+      val buttonDelUrl = new Button("Del") { maximumSize = sizeOfButtons; tooltip = "Remove meetup URL" }
+      val textPrize = new TextField {
+        maximumSize = new Dimension(Int.MaxValue, itemHeight)
+        tooltip = "Name of prize"
+      }
+      val numericFieldPrizeQty = new JNumericField(2, JNumericField.INTEGER)  {
+        setMaximumSize(new Dimension(Int.MaxValue, itemHeight))
+        tooltip = "Quantity of these prizes to be given away"
+      }
+      val buttonAddPrize = new Button("Add") { maximumSize = sizeOfButtons; tooltip = "Add new prize" }
 
-    contents = new BoxPanel(Orientation.Vertical) {
+      val tableModel = new MyTableModel( Array[Array[Any]](), List("Meetup Name", "Event Name", "Date/Time") )
+      val table      = new Table( 1, 2 ) { model = tableModel }
+      for ( i <- 0 to 10 )
+        tableModel.addRow(Array[AnyRef]("i", "j"))
+      contents += new ScrollPane(table)
+
       contents += new BoxPanel(Orientation.Horizontal) {
         contents += textUrl
         contents += buttonAddUrl
         contents += buttonDelUrl
       }
-
-      val tableModel = new MyTableModel( Array[Array[Any]](), List("Meetup Name", "Event Name", "Date/Time") )
-      val table      = new Table( 1, 2 ) { model = tableModel }
-      for ( i <- 0 to 10 ) { tableModel.addRow(Array[AnyRef]("i", "j")) }
-      contents += new ScrollPane(table)
-
-      contents += new Label(" ")
-
       contents +=  new BoxPanel(Orientation.Horizontal) {
         contents += textPrize
         peer.add(numericFieldPrizeQty)
         contents += buttonAddPrize
       }
 
-      contents +=  new BoxPanel(Orientation.Horizontal) {
-        contents += labelRandomName
-        contents += buttonRoll
+      reactions += {
+        case ButtonClicked(`buttonAddPrize`) =>
+          println("buttonAddPrize not implmented")
+
+        case ButtonClicked(`buttonAddUrl`) =>
+          println("buttonAddUrl not implmented")
+
+        case ButtonClicked(`buttonDelUrl`) =>
+          println("buttonDelUrl not implmented")
       }
-
-      //contents += new ScrollPane(new Table(model.prizesWonDP, Array("Winner", "Prize", "Email")))
-      contents += buttonFinish
-
-      contents += Attribution.attribution
-      border = new EmptyBorder(20, 20, 10, 20)
     }
-    pack
+
+    val page2 = new BoxPanel(Orientation.Vertical) {
+      val labelRandomName = new Label
+      val buttonRoll      = new Button("Roll")   { maximumSize = sizeOfButtons; tooltip = "Pick a random attendee" }
+      val buttonAward     = new Button("Award")  { maximumSize = sizeOfButtons; tooltip = "Award prize to selected attendee" }
+
+      val tableModel = new MyTableModel( Array[Array[Any]](), List("Winner Name", "Prize", "Email") )
+      val table      = new Table( 1, 2 ) { model = tableModel }
+      for ( i <- 0 to 10 ) { tableModel.addRow(Array[AnyRef]("i", "j")) }
+      contents += new ScrollPane(table)
+
+    contents +=  new BoxPanel(Orientation.Horizontal) {
+      xLayoutAlignment = Component.LEFT_ALIGNMENT
+      contents += buttonRoll
+      contents += buttonAward
+      contents += labelRandomName
+    }
+
+    //contents += new ScrollPane(new Table(model.prizesWonDP, Array("Winner", "Prize", "Email")))
 
     reactions += {
-      case ButtonClicked(`buttonAddPrize`) =>
-        println("buttonAddPrize not implmented")
-
-      case ButtonClicked(`buttonAddUrl`) =>
-        println("buttonAddUrl not implmented")
-
-      case ButtonClicked(`buttonDelUrl`) =>
-        println("buttonDelUrl not implmented")
-
       case ButtonClicked(`buttonRoll`) =>
         println("buttonRoll not implmented")
 
-      case ButtonClicked(`buttonFinish`) =>
-        println("buttonFinish not implmented")
+      case ButtonClicked(`buttonAward`) =>
+        println("buttonAward not implmented")
     }
+  }
+
+  peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+  title = "Meetup Roll v0.1"
+  size = new Dimension(575, 900)
+  try {
+    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
+  } catch {
+    case ex => println("Error setting native LAF: " + ex)
+  }
+
+  tabbedPane.pages += new TabbedPane.Page("Setup", page1)
+  tabbedPane.pages += new TabbedPane.Page("Roll", page2)
+  contents = new BoxPanel(Orientation.Vertical) {
+    contents += tabbedPane
+    contents += new Label(" ")
+    contents += buttonFinish
+    contents += new Label(" ")
+    contents += Attribution.attribution
+    border = new EmptyBorder(20, 20, 10, 20)
+  }
+  pack
 
     reactions += {
       case WindowOpened(_) =>
@@ -124,6 +150,9 @@ object Gui extends SimpleSwingApplication with PersistableApp {
       case WindowClosing(_) =>
         saveProperties(locationOnScreen, size)
         sys.exit(0)
+
+      case ButtonClicked(`buttonFinish`) =>
+        println("buttonFinish not implmented")
     }
 
     private def loadProperties {
