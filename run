@@ -1,2 +1,2 @@
 #!/bin/bash
-java -cp target/MeetupRoll-assembly-0.1.jar com.micronautics.meetupRoll.MeetupRoll
+javaw -cp target/MeetupRoll-assembly-0.3.jar com.micronautics.meetupRoll.MeetupRoll

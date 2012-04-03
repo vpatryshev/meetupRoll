@@ -1,1 +1,1 @@
-@java -jar target/MeetupRoll-assembly-0.1.jar com.micronautics.meetupRoll.MeetupRoll
+start /b javaw -cp target/MeetupRoll-assembly-0.3.jar com.micronautics.meetupRoll.MeetupRoll
