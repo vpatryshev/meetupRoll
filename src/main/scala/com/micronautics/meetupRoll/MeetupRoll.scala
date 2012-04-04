@@ -32,7 +32,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 object MeetupRoll extends App {
   private val random = new Random()
-  Gui.startup(null)
+ // Gui.startup(null)
 
   /** Events on front page
    * TODO parse them and find today's event, or the next upcoming one, or the most recent one if none are upcoming */
