@@ -46,7 +46,7 @@ object MeetupRoll extends App {
 
   private def groupUrl = "http://www.meetup.com/" + meetupGroup + "/events/" + eventId + "/printrsvp"
 
-  private val attendeesPage = new URL(groupUrl).asInput.slurpString(Codec.UTF8)
+  private val attendeesPage = new URL(groupUrl).asInput.string(Codec.UTF8)
   private val title = (Title findFirstMatchIn attendeesPage) match {
     case Some(x) => x group (1)
     case None => ""
