@@ -38,11 +38,13 @@ import java.util.Properties;
 
 
 public class SendAuthenticatedEMail {
+    private boolean dryRun = true;
     private String smtpHost;
     private String smtpUser;
     private String smtpPwd;
     private int smtpPort;
 
+    private static void log(String s) { System.out.println(s); }
 
     public static void sendEmail(String recipients, String subject, String body, String from) {
         try {
@@ -54,7 +56,13 @@ public class SendAuthenticatedEMail {
 
     public void sendMail(String recipients, String subject, String body, String from) throws MessagingException {
         readProps();
-
+        if (dryRun) {
+            log("From: " + from);
+            log("To: " + recipients);
+            log("Subj: " + subject);
+            log("\n---------------------------\n" + body + "\n----------------------\n");
+            return;
+        }
         Properties props = new Properties();
         props.put("mail.smtp.host", smtpHost);
         props.put("mail.smtp.auth", "true");
@@ -97,13 +105,14 @@ public class SendAuthenticatedEMail {
                 properties.load(in);
                 in.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("No properties found: " + e);
                 return;
             }
             smtpHost = properties.getProperty("smtpHost");
             smtpPort = Integer.parseInt(properties.getProperty("smtpPort"));
             smtpUser = properties.getProperty("smtpUser");
             smtpPwd = properties.getProperty("smtpPwd");
+            dryRun = false;
         }
     }
 

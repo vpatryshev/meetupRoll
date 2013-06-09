@@ -42,11 +42,22 @@ object MeetupRoll extends App {
   private val Names = """<span class="D_name">(\S+) (\S*)""".r
   private val properties = readProps
   private val meetupGroup = Option(properties.getProperty("meetupGroup")).orElse(Some("Bay-Area-Scala-Enthusiasts")).get
-  private val eventId = Option(properties.getProperty("eventId")).orElse(Some("44582312")).get
+  private val eventId = Option(properties.getProperty("eventId")).orElse(Some("121848382")).get
 
-  private def groupUrl = "http://www.meetup.com/" + meetupGroup + "/events/" + eventId + "/printrsvp"
+  private def groupUrl = "http://www.meetup.com/" + meetupGroup
+  private def eventUrl = groupUrl + "/events/" + eventId + "/printrsvp"
 
-  private val attendeesPage = new URL(groupUrl).asInput.string(Codec.UTF8)
+//  private val calendarPage = new URL(groupUrl + "/events/calendar").asInput.string
+
+  private val EventUrlPattern = ("a href=\"" + groupUrl + "/events/([\\d]+)/\"").r
+/*
+  calendarPage match {
+    case EventUrlPattern(id) => println(s"Hurray! found event id $id"); System.exit(1)
+    case x => println(s"Alas, $x"); System.exit(1)
+  }
+*/
+  private val attendeesPage = new URL(eventUrl).asInput.string(Codec.UTF8)
+
   private val title = (Title findFirstMatchIn attendeesPage) match {
     case Some(x) => x group (1)
     case None => ""
@@ -70,9 +81,8 @@ object MeetupRoll extends App {
     val properties = new Properties()
     val in = MeetupRoll.getClass().getClassLoader().getResourceAsStream("meetup.properties")
     if (in == null) {
-      System.err.println("Could not read meetup.properties, aborting.");
-      System.exit(1);
-    } else {
+      System.err.println("Could not read meetup.properties");
+     } else {
       properties.load(in)
       in.close()
     }
@@ -101,14 +111,14 @@ object MeetupRoll extends App {
   var winners = new ListMap[String, String].empty
   println("\n\nParsed " + names.length + " names from \"" + title + "\"")
   println("Scheduled for " + date)
-  println(groupUrl)
+  println(eventUrl)
   if (!isEventToday(date))
     println("\n*** THIS EVENT IS NOT HELD TODAY ***\n")
   while (true) {
     val name = randomName
     names -= name
     println("Winner: " + name)
-    val token = Console.readLine("Type the meetupName of the prize " + name + " won, or type Enter to exit > ")
+    val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
     if (token == "") {
       if (winners.size > 0) {
         var winString = "Winners are:\n";
