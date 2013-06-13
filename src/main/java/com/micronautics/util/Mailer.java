@@ -1,6 +1,6 @@
 package com.micronautics.util;
 
-/** Send authenticated SMTP email. Properties must be specified in meetup.properties
+/** Send authenticated SMTP email. MeetupRoll.props must be specified in meetup.MeetupRoll.props
  * <pre>
  * smtpHost = smtp.googlemail.com
  * smtpUser = user@gmail.com
@@ -28,16 +28,20 @@ package com.micronautics.util;
    See the License for the specific language governing permissions and
    limitations under the License. */
 
+import com.typesafe.config.Config;
+
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Date;
 import java.util.Properties;
 
+public class Mailer {
+    private Config config;
 
-public class SendAuthenticatedEMail {
+    public Mailer(Config config) {
+        this.config = config;
+    }
     private boolean dryRun = true;
     private String smtpHost;
     private String smtpUser;
@@ -46,18 +50,9 @@ public class SendAuthenticatedEMail {
 
     private static void log(String s) { System.out.println(s); }
 
-    public static void sendEmail(String recipients, String subject, String body, String from) {
-        try {
-            new SendAuthenticatedEMail().sendMail(recipients, subject, body, from);
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendMail(String recipients, String subject, String body, String from) throws MessagingException {
-        readProps();
+    public void sendMail(String from, String recipients, String subject, String body) throws MessagingException {
         if (dryRun) {
-            log("From: " + from);
+            log("From: " + smtpUser);
             log("To: " + recipients);
             log("Subj: " + subject);
             log("\n---------------------------\n" + body + "\n----------------------\n");
@@ -93,26 +88,6 @@ public class SendAuthenticatedEMail {
             System.err.println(e.getMessage());
         } finally {
             transport.close();
-        }
-    }
-
-    private void readProps() {
-        Properties properties = new Properties();
-        InputStream in = getClass().getClassLoader().getResourceAsStream(
-                "meetup.properties");
-        if (in != null) {
-            try {
-                properties.load(in);
-                in.close();
-            } catch (IOException e) {
-                System.out.println("No properties found: " + e);
-                return;
-            }
-            smtpHost = properties.getProperty("smtpHost");
-            smtpPort = Integer.parseInt(properties.getProperty("smtpPort"));
-            smtpUser = properties.getProperty("smtpUser");
-            smtpPwd = properties.getProperty("smtpPwd");
-            dryRun = false;
         }
     }
 

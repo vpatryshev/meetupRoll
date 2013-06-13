@@ -21,8 +21,8 @@ import java.net.URL
 
 import scala.collection.mutable.ListMap
 import scala.util.Random
-
-import com.micronautics.util.SendAuthenticatedEMail
+import com.typesafe.config._
+import com.micronautics.util.Mailer
 
 import scalax.io.JavaConverters.asInputConverter
 import scalax.io.Codec
@@ -40,10 +40,15 @@ object MeetupRoll extends App {
   private val Date = """<span class="date">(.*)</span>""".r
   private val Title = """<title>Meetup.com &rsaquo; RSVP List: (.*)</title>""".r
   private val Names = """<span class="D_name">(\S+) (\S*)""".r
-  private val properties = readProps
-  private val meetupGroup = Option(properties.getProperty("meetupGroup")).orElse(Some("Bay-Area-Scala-Enthusiasts")).get
-  private val eventId = Option(properties.getProperty("eventId")).orElse(Some("121848382")).get
-
+  val config = ConfigFactory.load("meetup")
+  private val eventId = config.getString("eventId")
+  private val meetupGroup = config.getString("meetupGroup")
+  val sponsors = ConfigFactory.load("sponsors")
+  val xxx = sponsors.getString("xxx")
+  private val prizesData = sponsors.getList("prizeRules")
+  private val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
+  println(prizeRules)
+  private val mailer = new Mailer(config)
   private def groupUrl = "http://www.meetup.com/" + meetupGroup
   private def eventUrl = groupUrl + "/events/" + eventId + "/printrsvp"
 
@@ -77,18 +82,6 @@ object MeetupRoll extends App {
 
   private def randomName = names(random.nextInt(numNames))
 
-  private def readProps = {
-    val properties = new Properties()
-    val in = MeetupRoll.getClass().getClassLoader().getResourceAsStream("meetup.properties")
-    if (in == null) {
-      System.err.println("Could not read meetup.properties");
-     } else {
-      properties.load(in)
-      in.close()
-    }
-    properties
-  }
-
   private def isEventToday(date: String): Boolean = {
     val eventDate: Date = try {
       new SimpleDateFormat("EEEE, MMMMM dd, yyyy HH:mm a").parse(date)
@@ -114,22 +107,51 @@ object MeetupRoll extends App {
   println(eventUrl)
   if (!isEventToday(date))
     println("\n*** THIS EVENT IS NOT HELD TODAY ***\n")
-  while (true) {
-    val name = randomName
-    names -= name
-    println("Winner: " + name)
-    val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
-    if (token == "") {
-      if (winners.size > 0) {
-        var winString = "Winners are:\n";
-        for (winner <- winners)
-          winString += "  " + winner._1 + ": " + winner._2 + "\n"
-        println(winString + "\nSending email so you remember...")
-        SendAuthenticatedEMail.sendEmail(properties.getProperty("smtpUser"), "Giveaway winners", winString, properties.getProperty("smtpUser"))
+
+  runByRules
+
+  def runByRules {
+    println("--RUNNING BY RULES-- n=" + numNames)
+    for (rule <- prizeRules) {
+      val numPrizes = rule.forNumberOfParticipants(numNames)
+      println("--RULE " + rule + "--> " + numPrizes)
+      for (i <- 0 to numPrizes) {
+        val name = randomName
+        names -= name
+        println("Winner: " + name)
+        val sponsor = rule.sponsor
+        val prize = rule.name
+        winners += name -> (prize + " from " + sponsor)
       }
-      println("Done.")
-      System.exit(0)
     }
-    winners += name -> token
+    if (winners.size > 0) {
+      var winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "  ", "\n")
+      println(winString + "\nSending email so you remember...")
+      mailer.sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
+    }
+    println("Done.")
+    System.exit(0)
+
+  }
+
+  //  runInteractively
+
+  def runInteractively {
+    while (true) {
+      val name = randomName
+      names -= name
+      println("Winner: " + name)
+      val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
+      if (token == "") {
+        if (winners.size > 0) {
+          var winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "  ", "\n")
+          println(winString + "\nSending email so you remember...")
+          mailer.sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
+        }
+        println("Done.")
+        System.exit(0)
+      }
+      winners += name -> token
+    }
   }
 }

@@ -32,7 +32,8 @@ import scala.swing.{TabbedPane, BoxPanel, Button, Label, ScrollPane, TextField, 
    See the License for the specific language governing permissions and
    limitations under the License. */
 
-object Gui extends SimpleSwingApplication with PersistableApp {
+object Gui extends /*SimpleSwingApplication with*/ PersistableApp
+{
   private val itemHeight:Int = 20
   private val model = Model()
   private val propertyFileName = "meetupRoll.properties"

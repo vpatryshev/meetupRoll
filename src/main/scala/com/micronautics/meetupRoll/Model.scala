@@ -3,6 +3,8 @@ package com.micronautics.meetupRoll
 import javax.swing.table.AbstractTableModel
 import org.joda.time.DateTime
 import scala.collection.mutable.ArrayBuffer
+import com.typesafe.config.{ConfigObject, ConfigValue, Config}
+import java.util
 
 /* Copyright 1012 Micronautics Research Corporation
 
@@ -26,6 +28,23 @@ import scala.collection.mutable.ArrayBuffer
   */
 
 case class Meetup(val meetupName: String, val eventTitle: String, val dateTime: DateTime)
+
+case class PrizeRules(val name: String, val sponsor: String, val range: Seq[Int]) {
+  def forNumberOfParticipants(n: Int): Int = {
+    for (i <- 0 to range.size) if (n < range(i)) return (i-1)
+    0
+  }
+}
+
+object PrizeRules {
+  def apply(config: ConfigObject) = {
+    val limits = Some(config.get("limits").unwrapped).collect{case al:java.util.List[_] => al.toArray.toList}
+    val range = limits.get.collect {case i:java.lang.Integer => i.intValue}
+    new PrizeRules(config.get("name").unwrapped.toString,
+                   config.get("sponsor").unwrapped.toString,
+                   range)
+  }
+}
 
 case class PrizeWon(val winnerName: String, val prize: String, val email: String)
 

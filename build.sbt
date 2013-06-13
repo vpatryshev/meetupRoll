@@ -3,6 +3,7 @@
 
 organization := "Micronautics Research"
 
+
 name := "Meetup Roll"
 
 version := "0.3"
@@ -26,12 +27,13 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2" withSources(),
-  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2" withSources(),
-  "javax.mail"                    %  "mail"          % "latest.integration" withSources(),
+  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2" withSources,
+  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2" withSources,
+  "javax.mail"                    %  "mail"          % "latest.integration" withSources,
   "org.scala-tools.time"          %  "time_2.9.1"    % "0.5",
-  "org.scala-lang"                %  "scala-swing"   % "2.10.1" withSources(),
-  "org.scalatest"                 %% "scalatest"     % "latest.milestone"   % "test" withSources()
+  "org.scala-lang"                %  "scala-swing"   % "2.10.1" withSources,
+  "org.scalatest"                 %% "scalatest"     % "latest.milestone"   % "test" withSources,
+  "com.typesafe"                  %  "config"        % "1.0.1"                       withSources
 )
 
 // add all the settings in assemblySettings into each SBT project
