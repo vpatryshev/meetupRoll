@@ -110,22 +110,42 @@ object MeetupRoll extends App {
 
   runByRules
 
-  def runByRules {
-    println("--RUNNING BY RULES-- n=" + numNames)
-    for (rule <- prizeRules) {
-      val numPrizes = rule.forNumberOfParticipants(numNames)
-      println("--RULE " + rule + "--> " + numPrizes)
-      for (i <- 0 to numPrizes) {
-        val name = randomName
-        names -= name
-        println("Winner: " + name)
-        val sponsor = rule.sponsor
-        val prize = rule.name
-        winners += name -> (prize + " from " + sponsor)
+  def pickWinner: Option[String] = {
+    while (!names.isEmpty) {
+      val name = randomName
+      names -= name
+      val anybodyHere = Console.readLine("Here's the winner: " + name + ", is this person around? > ")
+      if (anybodyHere.equalsIgnoreCase("y")) return Some(name)
+      if (anybodyHere.isEmpty) return None
+    }
+    return None
+  }
+
+  def pickWInners(numPrizes: Int, rule: PrizeRules) {
+    for (i <- 0 to numPrizes) {
+      val nameOpt = pickWinner
+      nameOpt match {
+        case Some(name) => {
+          println("Winner: " + name)
+          val sponsor = rule.sponsor
+          val prize = rule.name
+          winners += name -> (prize + " from " + sponsor)
+        }
+        case None => return
       }
     }
+  }
+
+  def runByRules {
+    println("--RUNNING BY RULES--")
+    val numPresent = Console.readLine("Signed up " + numNames + "... how many are here? >").toInt
+    for (rule <- prizeRules) {
+      val numPrizes = rule.forNumberOfParticipants(numPresent)
+      println("--RULE " + rule + "--> " + numPrizes)
+      pickWInners(numPrizes, rule)
+    }
     if (winners.size > 0) {
-      var winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "  ", "\n")
+      val winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "\n  ", "\n")
       println(winString + "\nSending email so you remember...")
       mailer.sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
     }
@@ -144,7 +164,7 @@ object MeetupRoll extends App {
       val token = Console.readLine("Type the name of the prize " + name + " won, or type Enter to exit > ")
       if (token == "") {
         if (winners.size > 0) {
-          var winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "  ", "\n")
+          val winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "  ", "\n")
           println(winString + "\nSending email so you remember...")
           mailer.sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
         }
