@@ -28,6 +28,8 @@ import scalax.io.JavaConverters.asInputConverter
 import scalax.io.Codec
 import java.util.{Date, Calendar, Properties}
 import java.text.{ParseException, SimpleDateFormat}
+import java.io.{PrintWriter, FileWriter, File, FileOutputStream}
+import java.util
 
 
 object MeetupRoll extends App {
@@ -79,6 +81,28 @@ object MeetupRoll extends App {
   yield m.group(1) + " " + m.group(2)).toList.toBuffer
 
   private def numNames = names.length
+  val nPerPage = 70
+
+  def inCell(text:String) = <p style="margin-left:4px;margin-right:4px;">{text}</p>
+  def th(text: String) = <th>{inCell(text)}</th>
+  def tr(name:String) = <tr><td>{inCell(name)}</td><td></td></tr>
+  val col1 = th("Name (ORDER BY FirstName)")
+  val col22 = th("Your Signature or Something")
+  def table(list:List[String]) = if (list.isEmpty)(<p></p>) else <center><table border="1"><tr>{col1}{col22}</tr>{list map tr}</table></center>
+
+  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y")) {
+    val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".html")))
+    out.println("<html><body>")
+    names.toList.grouped(nPerPage).zipWithIndex.foreach{case (list:List[String], pageNo) =>
+      out.println(<center>--{pageNo+1}--</center>)
+      val (col1,col2) = list.splitAt(nPerPage/2)
+      out.println(<table width ="100%"><tr><td valign="top">{table(col1)}</td><td valign="top">{table(col2)}</td></tr></table>)
+      out.println(<p class="break"/>)
+    }
+    out.println("</body></html>")
+    out.close
+  }
+
 
   private def randomName = names(random.nextInt(numNames))
 
@@ -121,7 +145,7 @@ object MeetupRoll extends App {
     return None
   }
 
-  def pickWInners(numPrizes: Int, rule: PrizeRules) {
+  def pickWinners(numPrizes: Int, rule: PrizeRules) {
     for (i <- 0 to numPrizes) {
       val nameOpt = pickWinner
       nameOpt match {
@@ -142,7 +166,7 @@ object MeetupRoll extends App {
     for (rule <- prizeRules) {
       val numPrizes = rule.forNumberOfParticipants(numPresent)
       println("--RULE " + rule + "--> " + numPrizes)
-      pickWInners(numPrizes, rule)
+      pickWinners(numPrizes, rule)
     }
     if (winners.size > 0) {
       val winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "\n  ", "\n")
