@@ -30,6 +30,7 @@ import java.util.{Date, Calendar, Properties}
 import java.text.{ParseException, SimpleDateFormat}
 import java.io.{PrintWriter, FileWriter, File, FileOutputStream}
 import java.util
+import javax.management.remote.rmi._RMIConnection_Stub
 
 
 object MeetupRoll extends App {
@@ -46,7 +47,6 @@ object MeetupRoll extends App {
   private val eventId = config.getString("eventId")
   private val meetupGroup = config.getString("meetupGroup")
   val sponsors = ConfigFactory.load("sponsors")
-  val xxx = sponsors.getString("xxx")
   private val prizesData = sponsors.getList("prizeRules")
   private val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
   println(prizeRules)
@@ -65,15 +65,9 @@ object MeetupRoll extends App {
 */
   private val attendeesPage = new URL(eventUrl).asInput.string(Codec.UTF8)
 
-  private val title = (Title findFirstMatchIn attendeesPage) match {
-    case Some(x) => x group (1)
-    case None => ""
-  }
+  private val title = (Title findFirstMatchIn attendeesPage) map (_ group (1)) getOrElse "?"
 
-  private val date = (Date findFirstMatchIn attendeesPage) match {
-    case Some(x) => x group (1)
-    case None => ""
-  }
+  private val date = (Date findFirstMatchIn attendeesPage) map (_ group (1)) getOrElse "?"
 
   /**Mutable list of full names. If a member did not specify a last meetupName they will not appear in the list.
    * Names that are chosen are removed so they cannot be chosen again. */
@@ -81,20 +75,24 @@ object MeetupRoll extends App {
   yield m.group(1) + " " + m.group(2)).toList.toBuffer
 
   private def numNames = names.length
-  val nPerPage = 70
+  val nPerPage = 62
 
   def inCell(text:String) = <p style="margin-left:4px;margin-right:4px;">{text}</p>
   def th(text: String) = <th>{inCell(text)}</th>
   def tr(name:String) = <tr><td>{inCell(name)}</td><td></td></tr>
-  val col1 = th("Name (ORDER BY FirstName)")
-  val col22 = th("Your Signature or Something")
-  def table(list:List[String]) = if (list.isEmpty)(<p></p>) else <center><table border="1"><tr>{col1}{col22}</tr>{list map tr}</table></center>
+  val col1 = th("Name        (ORDER BY FirstName)")
+  val col2 = th("Your Signature or Something")
+  def table(list:List[String]) = if (list.isEmpty)(<p></p>) else <center><table border="1"><tr>{col1}{col2}</tr>{list map tr}</table></center>
 
-  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y")) {
+/*  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y"))*/ {
     val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".html")))
     out.println("<html><body>")
     names.toList.grouped(nPerPage).zipWithIndex.foreach{case (list:List[String], pageNo) =>
-      out.println(<center>--{pageNo+1}--</center>)
+      out.println(<h3>{date}. <i>{title}</i> </h3>)
+      val name1 = list.head.split(" ")(0)
+      val name2 = list.last.split(" ")(0)
+      out.println(<center>-- {pageNo+1}  --</center>)
+      out.println(<center><b>{name1}..{name2}</b></center>)
       val (col1,col2) = list.splitAt(nPerPage/2)
       out.println(<table width ="100%"><tr><td valign="top">{table(col1)}</td><td valign="top">{table(col2)}</td></tr></table>)
       out.println(<p class="break"/>)
