@@ -42,7 +42,7 @@ object MeetupRoll extends App {
   private val Event = """<a href="http://www.meetup.com/.*?/events/(.*?)/" itemprop="url" class="omnCamp omnrv_rv13"><span itemprop="summary">(.*?)</span></a>""".r
   private val Date = """<span class="date">(.*)</span>""".r
   private val Title = """<title>Meetup.com &rsaquo; RSVP List: (.*)</title>""".r
-  private val Names = """<span class="D_name">(\S+) (\S*)""".r
+  private val Names = """<span class="D_name">([^<]*)""".r
   val config = ConfigFactory.load("meetup")
   private val eventId = config.getString("eventId")
   private val meetupGroup = config.getString("meetupGroup")
@@ -69,13 +69,47 @@ object MeetupRoll extends App {
 
   private val date = (Date findFirstMatchIn attendeesPage) map (_ group (1)) getOrElse "?"
 
+  def intact = Set("", "I", "II", "III", "IV", "V")
+
+  def isConsonant(c: Char) = "bcdfghjklmnpqrstvwxz" contains c.toLower
+
+  def nameCase(rawName: String): String = {
+    val name = rawName.trim
+    if (intact(name)) name else
+    if (name contains "-") (name split "-" map nameCase mkString "-")
+    else {
+      val (h,t) = name.toList.splitAt(1)
+      val l0 = h.head
+      t match {
+        case l1::Nil if (isConsonant(l0) && isConsonant(l1)) => "" + l0.toUpper + l1.toUpper
+        case '\''::tail => h.head.toUpper + '\'' + nameCase(tail.mkString)
+        case _          => h.head.toUpper + t.mkString.toLowerCase
+      }
+    }
+  }
+
+  def fixName(name: String) = {
+    if (name.contains("Grimaldi")) {
+      println("wtf")
+    }
+    val names = name split " " toList
+    val tail = names.tail
+    val first = nameCase(names.head)
+    if (tail.isEmpty) first else {
+      first::(tail.dropRight(1)):::List(nameCase(tail.last)) mkString " "
+    }
+  }
+
+
   /**Mutable list of full names. If a member did not specify a last meetupName they will not appear in the list.
    * Names that are chosen are removed so they cannot be chosen again. */
   private var names = (for (m <- (Names findAllIn attendeesPage).matchData)
-  yield m.group(1) + " " + m.group(2)).toList.toBuffer
+  yield m.group(1)).toList.toBuffer map fixName
 
   private def numNames = names.length
   val nPerPage = 62
+
+  def firstName(name: String) = name split " " head
 
   def inCell(text:String) = <p style="margin-left:4px;margin-right:4px;">{text}</p>
   def th(text: String) = <th>{inCell(text)}</th>
@@ -86,11 +120,11 @@ object MeetupRoll extends App {
 
 /*  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y"))*/ {
     val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".html")))
-    out.println("<html><body>")
+    out.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head><body>")
     names.toList.grouped(nPerPage).zipWithIndex.foreach{case (list:List[String], pageNo) =>
       out.println(<h3>{date}. <i>{title}</i> </h3>)
-      val name1 = list.head.split(" ")(0)
-      val name2 = list.last.split(" ")(0)
+      val name1 = firstName(list.head)
+      val name2 = firstName(list.last)
       out.println(<center>-- {pageNo+1}  --</center>)
       out.println(<center><b>{name1}..{name2}</b></center>)
       val (col1,col2) = list.splitAt(nPerPage/2)
