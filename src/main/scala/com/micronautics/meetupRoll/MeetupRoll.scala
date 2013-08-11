@@ -27,10 +27,11 @@ import com.micronautics.util.Mailer
 import scalax.io.JavaConverters.asInputConverter
 import scalax.io.Codec
 import java.util.{Date, Calendar, Properties}
-import java.text.{ParseException, SimpleDateFormat}
+import java.text.{Normalizer, ParseException, SimpleDateFormat}
 import java.io.{PrintWriter, FileWriter, File, FileOutputStream}
 import java.util
 import javax.management.remote.rmi._RMIConnection_Stub
+import xml.NodeSeq
 
 
 object MeetupRoll extends App {
@@ -104,14 +105,24 @@ object MeetupRoll extends App {
   /**Mutable list of full names. If a member did not specify a last meetupName they will not appear in the list.
    * Names that are chosen are removed so they cannot be chosen again. */
   private var names = (for (m <- (Names findAllIn attendeesPage).matchData)
-  yield m.group(1)).toList.toBuffer map fixName
+  yield m.group(1)).toSet.toBuffer map fixName sorted
+
+  def findName(s: String) = names.find(_.contains(s))
 
   private def numNames = names.length
   val nPerPage = 62
 
   def firstName(name: String) = name split " " head
+  def escape(xmlText: String): NodeSeq = {
+    def escapeChar(c: Char): xml.Node =
+      if (c > 0x7F || Character.isISOControl(c))
+        xml.EntityRef("#" + Integer.toString(c, 10))
+    else
+      xml.Text(c.toString)
 
-  def inCell(text:String) = <p style="margin-left:4px;margin-right:4px;">{text}</p>
+    new xml.Group(xmlText.map(escapeChar(_)))
+  }
+  def inCell(text:String) = <p style="margin-left:4px;margin-right:4px;">{escape(text)}</p>
   def th(text: String) = <th>{inCell(text)}</th>
   def tr(name:String) = <tr><td>{inCell(name)}</td><td></td></tr>
   val col1 = th("Name        (ORDER BY FirstName)")
@@ -122,7 +133,7 @@ object MeetupRoll extends App {
     val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".html")))
     out.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head><body>")
     names.toList.grouped(nPerPage).zipWithIndex.foreach{case (list:List[String], pageNo) =>
-      out.println(<h3>{date}. <i>{title}</i> </h3>)
+      out.println(s"<h3>${date}. <i>${title}</i> </h3>")
       val name1 = firstName(list.head)
       val name2 = firstName(list.last)
       out.println(<center>-- {pageNo+1}  --</center>)
@@ -135,6 +146,8 @@ object MeetupRoll extends App {
     out.close
   }
 
+  def normalizeName(name: String) = {
+    Normalizer.normalize(name, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "")  }
 
   private def randomName = names(random.nextInt(numNames))
 
@@ -170,8 +183,9 @@ object MeetupRoll extends App {
     while (!names.isEmpty) {
       val name = randomName
       names -= name
-      val anybodyHere = Console.readLine("Here's the winner: " + name + ", is this person around? > ")
-      if (anybodyHere.equalsIgnoreCase("y")) return Some(name)
+      val visibleName = normalizeName(name)
+      val anybodyHere = Console.readLine("Here's the winner: " + visibleName + ", is this person around? > ")
+      if (anybodyHere.equalsIgnoreCase("y")) return Some(visibleName)
       if (anybodyHere.isEmpty) return None
     }
     return None
