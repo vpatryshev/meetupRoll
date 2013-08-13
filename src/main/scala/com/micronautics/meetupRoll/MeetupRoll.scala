@@ -110,7 +110,7 @@ object MeetupRoll extends App {
   def findName(s: String) = names.find(_.contains(s))
 
   private def numNames = names.length
-  val nPerPage = 62
+  val nPerPage = 60
 
   def firstName(name: String) = name split " " head
   def escape(xmlText: String): NodeSeq = {
@@ -131,7 +131,7 @@ object MeetupRoll extends App {
 
 /*  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y"))*/ {
     val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".html")))
-    out.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head><body>")
+    out.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head><style>\n.break { page-break-before: always; }\n</style><body>")
     names.toList.grouped(nPerPage).zipWithIndex.foreach{case (list:List[String], pageNo) =>
       out.println(s"<h3>${date}. <i>${title}</i> </h3>")
       val name1 = firstName(list.head)
