@@ -1,0 +1,17 @@
+<lift:surround with="default" at="content">
+    <h2>Meetup roll for <lift:meetup.titleNodes /></h2>
+    <lift:meetup.participantNumberNodes /> participants in the roll.
+    <lift:prizeCollection.prizeNodes />
+
+    <form class="lift:form.ajax">
+        <div class="lift:WinnerChoice">
+            <div id="winnerChoice">
+                Winner of <span id="currentPrize"><span name="currentPrize"/></span>
+                is <span id="currentWinner"><span name="currentWinner"/></span>
+                <input type="radio" name="choice"/>
+            </div>
+            <span id="winners"><span name="winners"/></span>
+        </div>
+    </form>
+
+</lift:surround>

@@ -1,0 +1,18 @@
+  css
+  there is a need of a button Restart
+  db
+  restrictions for inputs
+  sending results by email
+  edit prize list
+  choose prize with the winner
+  finish with the lottery
+  prize list should change on the go of the choice
+  errors?
+  reloadings?
+- resolve todo
+- move to cloud
+- show photo
+
+TODO
+
+* TODO parse them and find today's event, or the next upcoming one, or the most recent one if none are upcoming *
