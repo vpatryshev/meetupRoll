@@ -27,9 +27,11 @@ class PrizeCollection {
       {throw new IllegalStateException("No actual number of participants specified")})))
     .filter(_.quantity > 0)))
 
-  lazy val prizeNodes: NodeSeq = <table>{
-      prizes.getOrElse(Nil).map(prize => <tr><td>{prize.name}</td><td>{prize.quantity}</td></tr>)
-    }</table>
+  lazy val prizeNodes: NodeSeq = <div class="span4 offset2 well prizes">
+    <div class="row"><strong class="span4 text-center prizelabel">Prizes</strong></div><ol>{
+      prizes.getOrElse(Nil).map(prize =>
+        <li><em>{prize.name}</em></li>)
+    }</ol></div>
 
 }
 

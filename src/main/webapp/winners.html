@@ -1,14 +1,14 @@
 <lift:surround with="default" at="content">
-    <h2>Meetup roll for <lift:meetup.titleNodes /></h2>
-    <lift:meetup.participantNumberNodes /> participants in the roll.
+    <h2 style="margin-bottom: 20px"><lift:meetup.titleNodes /></h2>
     <lift:prizeCollection.prizeNodes />
 
     <form class="lift:form.ajax">
         <div class="lift:WinnerChoice">
-            <div id="winnerChoice">
-                Winner of <span id="currentPrize"><span name="currentPrize"/></span>
-                is <span id="currentWinner"><span name="currentWinner"/></span>
-                <input type="radio" name="choice"/>
+            <div id="winnerChoice" class="winnerchoice">
+                Winner of <strong id="currentPrize"><span name="currentPrize"/></strong>
+                is <strong id="currentWinner"><span name="currentWinner"/></strong>. Is he/she here?<br/>
+                <button class="btn btn-success" name="choiceYes"/>
+                <button class="btn btn-danger" name="choiceNo"/>
             </div>
             <span id="winners"><span name="winners"/></span>
         </div>

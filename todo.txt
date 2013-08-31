@@ -1,10 +1,12 @@
   css
+  reduce prizes as they are chosen
+  progress bar on remaining prize count
+  choose prize with the winner
   there is a need of a button Restart
   db
   restrictions for inputs
   sending results by email
   edit prize list
-  choose prize with the winner
   finish with the lottery
   prize list should change on the go of the choice
   errors?

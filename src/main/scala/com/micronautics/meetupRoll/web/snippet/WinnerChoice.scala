@@ -35,34 +35,36 @@ class WinnerChoice {
   def currentWinnerNode = <span>{currentWinner.name}</span>
   def currentPrizeNode = <span>{currentWinner.prize.name}</span>
 
-  def winnersNode = <table>
-    {winners.get.sortBy(_.prize).map(winner => <tr><td>{winner.name}</td><td>won</td><td>{winner.prize}</td></tr>)}
+  def winnersNode = <table class="table table-striped">
+    {winners.get.sortBy(_.prize).map(winner =>
+      <tr><td><strong>{winner.name}</strong></td><td>won</td><td><strong>{winner.prize}</strong></td></tr>)}
   </table>
 
   def pickWinner(): Winner = Winner(Meetup.pickWinner(), remainingPrizes.head._1.name)
 
   def render = {
-    val choices = List("yes", "no")
+    def updateWinner(): JsCmd = {
+      if (remainingPrizes.get.isEmpty)
+        JsHideId("winnerChoice") & SetHtml("winners", winnersNode)
+      else {
+        currentWinner = pickWinner()
+        SetHtml("currentWinner", currentWinnerNode) & SetHtml("currentPrize", currentPrizeNode) &
+          SetHtml("winners", winnersNode)
+      }
+    }
 
     val choice: CssSel = if (!remainingPrizes.get.isEmpty) {
       "@currentWinner" #> currentWinnerNode &
       "@currentPrize" #> currentPrizeNode &
-      "@choice" #> ajaxRadio[String](choices, None, (resp) => {
-        if (resp == choices.head) {
-          winners.set(currentWinner :: winners.get)
-          val (currentPrize, remainingQuantity) = remainingPrizes.head
-          remainingPrizes.set(remainingPrizes.get - currentPrize)
-          if (remainingQuantity > 1)
-            remainingPrizes.set(new ListMap() + (currentPrize -> (remainingQuantity-1)) ++ remainingPrizes.get)
-        }
-        if (remainingPrizes.get.isEmpty)
-          JsHideId("winnerChoice") & SetHtml("winners", winnersNode)
-        else {
-          currentWinner = pickWinner()
-          SetHtml("currentWinner", currentWinnerNode) & SetHtml("currentPrize", currentPrizeNode) &
-            SetElemById("radio", JE.boolToJsExp(false), "checked") & SetHtml("winners", winnersNode)
-        }
-      }, "id" -> "radio").toForm
+      "@choiceYes" #> ajaxButton("Yes, the person is here", () => {
+        winners.set(currentWinner :: winners.get)
+        val (currentPrize, remainingQuantity) = remainingPrizes.head
+        remainingPrizes.set(remainingPrizes.get - currentPrize)
+        if (remainingQuantity > 1)
+          remainingPrizes.set(new ListMap() + (currentPrize -> (remainingQuantity - 1)) ++ remainingPrizes.get)
+        updateWinner()
+      }) &
+      "@choiceNo" #> ajaxButton("No", () => updateWinner)
     } else
       ClearClearable
 
