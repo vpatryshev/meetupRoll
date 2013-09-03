@@ -1,5 +1,3 @@
-  progress bar on remaining prize count
-  choose prize with the winner
   there is a need of a button Restart
   db
   restrictions for inputs
@@ -8,7 +6,6 @@
   finish with the lottery
   prize list should change on the go of the choice
   errors?
-  reloadings?
 - resolve todo
 - move to cloud
 - show photo
@@ -23,3 +20,4 @@ vertically align text and number input
 input too long
 yes/no - simetrically big
 several lines of question
+progress bar on remaining prize count

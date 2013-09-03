@@ -3,6 +3,7 @@ package com.micronautics.meetupRoll.web.snippet
 import net.liftweb._
 import http._
 import common._
+import js.JsCmds.SetHtml
 import util.Helpers._
 import js._
 import JsCmds._
@@ -11,12 +12,14 @@ import net.liftweb.util
 import java.util
 import net.liftweb.util
 import scala.collection.immutable.ListMap
-import net.liftweb.http.SHtml._
+import http.SHtml._
 import xml.{NodeSeq, Elem}
 import net.liftweb.util._
 import com.typesafe.config.{ConfigObject, ConfigFactory}
 import com.micronautics.meetupRoll.PrizeRules
 import com.micronautics.meetupRoll.web.snippet.ParticipantCrowd.actualNumberOfParticipants
+import com.micronautics.meetupRoll.web.snippet.Prize
+import com.micronautics.meetupRoll.web.snippet.Winner
 
 /**
  * @author Julia Astakhova
@@ -24,7 +27,7 @@ import com.micronautics.meetupRoll.web.snippet.ParticipantCrowd.actualNumberOfPa
 object WinnerChoice {
 
   object winners extends SessionVar[List[Winner]](List[Winner]())
-  object remainingPrizes extends SessionVar[Map[Prize, Int]](new ListMap())
+  object remainingPrizes extends SessionVar[Option[Map[Prize, Int]]](None)
 }
 
 class WinnerChoice {
@@ -35,22 +38,39 @@ class WinnerChoice {
   private val prizesData = sponsors.getList("prizeRules")
   private val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
 
-  remainingPrizes.set(new ListMap() ++ prizeRules.map(rule => Prize(
-    rule.name,
-    rule.forNumberOfParticipants(actualNumberOfParticipants.getOrElse
-    {throw new IllegalStateException("No actual number of participants specified")})))
-    .filter(_.quantity > 0)
-    .map(prize => (prize -> prize.quantity)))
+  if (remainingPrizes.get == None)
+    remainingPrizes.set(Some(Map() ++ prizeRules.map(rule => Prize(
+      rule.name,
+      rule.forNumberOfParticipants(actualNumberOfParticipants.getOrElse
+      {throw new IllegalStateException("No actual number of participants specified")})))
+      .filter(_.quantity > 0)
+      .map(prize => (prize -> prize.quantity))))
 
-  var currentWinner: Winner = pickWinner()
+  var currentWinner: String = Meetup.pickWinner()
 
   def currentWinnerNode = <span>{currentWinner.name}</span>
-  def currentPrizeNode = <span>{currentWinner.prize.name}</span>
+
+  private def updateWinner(): JsCmd = {
+    if (remainingPrizes.get.get.isEmpty)
+      JsHideId("winnerChoice") & SetHtml("winners", winnersNode)
+    else {
+      currentWinner = Meetup.pickWinner()
+      SetHtml("currentWinner", currentWinnerNode) & SetHtml("winners", winnersNode) &
+        SetHtml("currentPrizes", currentPrizesNode)
+    }
+  }
 
   def currentPrizesNode = <div class="span4 offset2 well prizes">
     <div class="row"><strong class="span4 text-center prizelabel">Prizes</strong></div><ol>{
-      remainingPrizes.get.keys.map(prize =>
-        <li><em>{prize.name}</em></li>)
+      (List() ++ remainingPrizes.get.get.keys).sortBy(_.name).map(prize =>
+        <li>{ajaxButton(prize.name, () => {
+          winners.set(Winner(currentWinner, prize.name) :: winners.get)
+          val remainingQuantity: Int = remainingPrizes.get.get(prize)
+          remainingPrizes.set(Some(remainingPrizes.get.get - prize))
+          if (remainingQuantity > 1)
+            remainingPrizes.set(Some(new ListMap() + (prize -> (remainingQuantity - 1)) ++ remainingPrizes.get.get))
+          updateWinner()
+        }, "class" -> "btn btn-success ovalbtn prizelabel")}</li>)
       }</ol></div>
 
   def winnersNode = <table class="table table-striped">
@@ -58,32 +78,14 @@ class WinnerChoice {
       <tr><td><strong>{winner.name}</strong></td><td>won</td><td><strong>{winner.prize}</strong></td></tr>)}
   </table>
 
-  def pickWinner(): Winner = Winner(Meetup.pickWinner(), remainingPrizes.head._1.name)
 
   def render = {
-    def updateWinner(): JsCmd = {
-      if (remainingPrizes.get.isEmpty)
-        JsHideId("winnerChoice") & JsHideId("currentPrizes") & SetHtml("winners", winnersNode)
-      else {
-        currentWinner = pickWinner()
-        SetHtml("currentWinner", currentWinnerNode) & SetHtml("currentPrize", currentPrizeNode) &
-          SetHtml("winners", winnersNode) & SetHtml("currentPrizes", currentPrizesNode)
-      }
-    }
-
-    val choice: CssSel = if (!remainingPrizes.get.isEmpty) {
+    val choice: CssSel = if (!remainingPrizes.get.get.isEmpty) {
+      "@text1" #> "is a winner. Choose a prize:" &
+      "@text2" #> "Or mark if the person is not here:" &
       "@currentPrizes" #> currentPrizesNode &
       "@currentWinner" #> currentWinnerNode &
-      "@currentPrize" #> currentPrizeNode &
-      "@choiceYes" #> ajaxButton("Yes, the person is here", () => {
-        winners.set(currentWinner :: winners.get)
-        val (currentPrize, remainingQuantity) = remainingPrizes.head
-        remainingPrizes.set(remainingPrizes.get - currentPrize)
-        if (remainingQuantity > 1)
-          remainingPrizes.set(new ListMap() + (currentPrize -> (remainingQuantity - 1)) ++ remainingPrizes.get)
-        updateWinner()
-      }) &
-      "@choiceNo" #> ajaxButton("No", () => updateWinner)
+      "@choiceNo" #> ajaxButton("Not here", () => updateWinner, "class" -> "ovalbtn btn btn-danger")
     } else
       ClearClearable
 
