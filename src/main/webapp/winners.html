@@ -1,9 +1,10 @@
 <lift:surround with="default" at="content">
     <h2 style="margin-bottom: 20px"><lift:meetup.titleNodes /></h2>
-    <lift:prizeCollection.prizeNodes />
 
     <form class="lift:form.ajax">
         <div class="lift:WinnerChoice">
+            <span id="currentPrizes"><span name="currentPrizes"/></span>
+
             <div id="winnerChoice" class="winnerchoice">
                 Winner of <strong id="currentPrize"><span name="currentPrize"/></strong>
                 is <strong id="currentWinner"><span name="currentWinner"/></strong>. Is he/she here?<br/>

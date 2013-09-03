@@ -1,5 +1,3 @@
-  css
-  reduce prizes as they are chosen
   progress bar on remaining prize count
   choose prize with the winner
   there is a need of a button Restart
@@ -18,3 +16,10 @@
 TODO
 
 * TODO parse them and find today's event, or the next upcoming one, or the most recent one if none are upcoming *
+
+UI
+
+vertically align text and number input
+input too long
+yes/no - simetrically big
+several lines of question
