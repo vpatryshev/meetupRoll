@@ -20,6 +20,7 @@ import com.micronautics.meetupRoll.PrizeRules
 import com.micronautics.meetupRoll.web.snippet.ParticipantCrowd.actualNumberOfParticipants
 import com.micronautics.meetupRoll.web.snippet.Prize
 import com.micronautics.meetupRoll.web.snippet.Winner
+import com.micronautics.util.Mailer
 
 /**
  * @author Julia Astakhova
@@ -53,9 +54,17 @@ class WinnerChoice {
   def currentWinnerNode = <span>{currentWinner.name}</span>
 
   private def updateWinner(): JsCmd = {
-    if (remainingPrizes.get.get.isEmpty)
+    if (remainingPrizes.get.get.isEmpty) {
+      val winnersToSend = winners.get
+      new Thread(new Runnable {
+        def run() {
+          val winString = winnersToSend map (w => (w.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
+          val config = ConfigFactory.load("meetup")
+          new Mailer(config).sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
+        }
+      }).start()
       JsHideId("winnerChoice") & SetHtml("winners", winnersNode)
-    else {
+    } else {
       currentWinner = Meetup.pickWinner()
       SetHtml("currentWinner", currentWinnerNode) & SetHtml("winners", winnersNode) &
         SetHtml("currentPrizes", currentPrizesNode)

@@ -1,12 +1,9 @@
-  db
-  restrictions for inputs
-  sending results by email
   edit prize list
-  finish with the lottery
-  prize list should change on the go of the choice
+  set meetup
+  move to cloud
+  restrictions for inputs
   errors?
 - resolve todo
-- move to cloud
 - show photo
 
 TODO
@@ -20,3 +17,5 @@ input too long
 yes/no - simetrically big
 several lines of question
 progress bar on remaining prize count
+oom
+put focus on number input at index.html
