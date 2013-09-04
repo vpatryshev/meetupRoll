@@ -28,23 +28,25 @@ object WinnerChoice {
 
   object winners extends SessionVar[List[Winner]](List[Winner]())
   object remainingPrizes extends SessionVar[Option[Map[Prize, Int]]](None)
-}
 
-class WinnerChoice {
+  def loadPrizes() {
+    val sponsors = ConfigFactory.load("sponsors")
+    val prizesData = sponsors.getList("prizeRules")
+    val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
 
-  import WinnerChoice._
-
-  private val sponsors = ConfigFactory.load("sponsors")
-  private val prizesData = sponsors.getList("prizeRules")
-  private val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
-
-  if (remainingPrizes.get == None)
     remainingPrizes.set(Some(Map() ++ prizeRules.map(rule => Prize(
       rule.name,
       rule.forNumberOfParticipants(actualNumberOfParticipants.getOrElse
       {throw new IllegalStateException("No actual number of participants specified")})))
       .filter(_.quantity > 0)
       .map(prize => (prize -> prize.quantity))))
+    winners.set(List[Winner]())
+  }
+}
+
+class WinnerChoice {
+
+  import WinnerChoice._
 
   var currentWinner: String = Meetup.pickWinner()
 

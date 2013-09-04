@@ -68,14 +68,20 @@
         .ovalbtn {
             border-radius: 16px;
         }
+
+        .nounderline a:hover {
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
     <script src="js/bootstrap.min.js"></script>
     <div class="container-narrow">
         <div class="masthead clearfix">
-            <img src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Colored_pencils_chevre.jpg/800px-Colored_pencils_chevre.jpg" class="img-rounded"/>
-            <h2 class="muted">Scala Meetup Roll</h2>
+            <a href="/">
+            <img src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Colored_pencils_chevre.jpg/800px-Colored_pencils_chevre.jpg"
+                 class="img-rounded"/></a>
+            <a href="/"><h2 class="muted nounderline">Scala Meetup Roll</h2></a>
         </div>
 
         <hr/>

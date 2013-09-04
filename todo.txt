@@ -1,4 +1,3 @@
-  there is a need of a button Restart
   db
   restrictions for inputs
   sending results by email

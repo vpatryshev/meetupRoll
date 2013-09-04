@@ -24,14 +24,12 @@ class ParticipantCrowd {
 
   def render = {
     def process() = {
+      WinnerChoice.loadPrizes()
       S.redirectTo("winners.html")
     }
 
-    if (actualNumberOfParticipants.get.isEmpty)
-      "@numOfActualPart" #> (text("", input => { actualNumberOfParticipants.set(Some(input.toString.toInt)) })
+    "@numOfActualPart" #> (text("", input => { actualNumberOfParticipants.set(Some(input.toString.toInt)) })
         ++ hidden(process))
-    else
-      process()
   }
 }
 
