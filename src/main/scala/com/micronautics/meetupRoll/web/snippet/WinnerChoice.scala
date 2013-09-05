@@ -28,19 +28,26 @@ import com.micronautics.util.Mailer
 object WinnerChoice {
 
   object winners extends SessionVar[List[Winner]](List[Winner]())
+  object prizeList extends SessionVar[List[Prize]](List[Prize]())
   object remainingPrizes extends SessionVar[Option[Map[Prize, Int]]](None)
 
   def loadPrizes() {
-    val sponsors = ConfigFactory.load("sponsors")
-    val prizesData = sponsors.getList("prizeRules")
-    val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
+    def loadPrizesFromConfig() {
+      val sponsors = ConfigFactory.load("sponsors")
+      val prizesData = sponsors.getList("prizeRules")
+      val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
 
-    remainingPrizes.set(Some(Map() ++ prizeRules.map(rule => Prize(
-      rule.name,
-      rule.forNumberOfParticipants(actualNumberOfParticipants.getOrElse
-      {throw new IllegalStateException("No actual number of participants specified")})))
-      .filter(_.quantity > 0)
-      .map(prize => (prize -> prize.quantity))))
+      prizeList.set(prizeRules.map(rule => Prize(
+        rule.name,
+        rule.forNumberOfParticipants(actualNumberOfParticipants.getOrElse
+        {throw new IllegalStateException("No actual number of participants specified")})))
+        .filter(_.quantity > 0))
+    }
+
+    if (prizeList.get.isEmpty)
+      loadPrizesFromConfig()
+
+    remainingPrizes.set(Some(Map() ++ prizeList.get.map(prize => (prize -> prize.quantity))))
     winners.set(List[Winner]())
   }
 }
