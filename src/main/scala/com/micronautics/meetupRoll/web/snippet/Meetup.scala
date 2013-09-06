@@ -10,9 +10,14 @@ import net.liftweb.http.SHtml._
 import net.liftweb.http.js.JsCmds.SetHtml
 import util.Random
 import java.text.Normalizer
-import net.liftweb.http.SessionVar
+import net.liftweb.http.{S, SessionVar}
 import net.liftweb.common.Box
 import collection.mutable
+import com.micronautics.meetupRoll.web.snippet.WinnerChoice.prizeList
+import scala.Some
+import com.micronautics.meetupRoll.web.snippet.MeetupData
+import net.liftweb.http.js.{JsCmds, JsCommands, JsCmd}
+import net.liftweb.http.js.JE.ValById
 
 /**
  * @author Julia Astakhova
@@ -22,18 +27,16 @@ object Meetup {
 
   val random = new Random()
 
-  def loadMeetup(): MeetupData = {
+  def loadMeetup(eventId: String = ConfigFactory.load("meetup").getString("eventId")): MeetupData = {
     val Event = """<a href="http://www.meetup.com/.*?/events/(.*?)/" itemprop="url" class="omnCamp omnrv_rv13"><span itemprop="summary">(.*?)</span></a>""".r
     val Date = """<span class="date">(.*)</span>""".r
     val Title = """<h1>(.*)</h1>""".r
     val Names = """<span class="D_name">([^<]*)""".r
     val config = ConfigFactory.load("meetup")
-    val eventId = config.getString("eventId")
     val meetupGroup = config.getString("meetupGroup")
     def groupUrl = "http://www.meetup.com/" + meetupGroup
-    def eventUrl = groupUrl + "/events/" + eventId + "/printrsvp"
-    val EventUrlPattern = ("a href=\"" + groupUrl + "/events/([\\d]+)/\"").r
-    val attendeesPage = new URL(eventUrl).asInput.string(Codec.UTF8)
+    def eventUrl(eventId: String) = groupUrl + "/events/" + eventId + "/printrsvp"
+    def attendeesPage(eventId: String) = new URL(eventUrl(eventId)).asInput.string(Codec.UTF8)
 
     def intact = Set("", "I", "II", "III", "IV", "V")
 
@@ -66,9 +69,9 @@ object Meetup {
       }
     }
 
-    val title = (Title findFirstMatchIn attendeesPage) map (_ group (1)) getOrElse "?"
+    val title = (Title findFirstMatchIn attendeesPage(eventId)) map (_ group (1)) getOrElse "?"
     val names = (
-      for (m <- (Names findAllIn attendeesPage).matchData) yield m.group(1)
+      for (m <- (Names findAllIn attendeesPage(eventId)).matchData) yield m.group(1)
       ).toSet.toBuffer map fixName sorted
 
     MeetupData(title, names)
@@ -104,6 +107,22 @@ class Meetup {
   val titleNodes: NodeSeq = <span>{title}</span>
 
   val participantNumberNodes: NodeSeq = <span>{participantNumber()}</span>
+
+  def render = {
+    def alertError = <div class="alert alert-error"><strong>Warning!</strong> URL doesn't lead to a meetup page.</div>
+    def alertSuccess = <div class="alert alert-success">Processing...</div>
+
+    "@meetupOK" #> ajaxButton(<span>Ok</span>, ValById("meetup"), (url: String) => {
+        val found = """.*/events/(\d+)/""".r.findAllIn(url).matchData
+        if (found.hasNext) {
+          val meetup = loadMeetup(found.next().group(1))
+          choosenMeetup.set(Some(meetup))
+          S.redirectTo("index.html")
+        } else {
+          SetHtml("error", alertError)
+        }
+    }, "class" -> "btn btn-success")
+  }
 }
 
 case class MeetupData(title: String, names: mutable.Buffer[String])

@@ -43,7 +43,7 @@
         .marketing p + h4 {
             margin-top: 28px;
         }
-        img {
+        .img-title {
             height: 100px;
             float:left;
             margin-right: 20px;
@@ -83,17 +83,21 @@
     <div class="container-narrow">
         <div class="masthead clearfix">
             <ul class="nav nav-pills pull-right">
+                <li><a href="/meetup.html">Choose another meetup</a></li><br/>
                 <li><a href="/prizes.html">Prize list</a></li><br/>
                 <li><a href="#">Email settings</a></li>
             </ul>
             <a href="/">
             <img src="http://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Colored_pencils_chevre.jpg/800px-Colored_pencils_chevre.jpg"
-                 class="img-rounded"/></a>
+                 class="img-rounded img-title"/></a>
             <a href="/"><h2 class="muted nounderline">Scala Meetup Roll</h2></a>
         </div>
 
         <hr/>
 
+        <div style="position:fixed;top:50%;left:50%;display:none" id="ajax-spinner">
+            <img src="images/spinner.gif"/>
+        </div>
         <lift:bind name="content" />
     </div>
     <lift:msgs />

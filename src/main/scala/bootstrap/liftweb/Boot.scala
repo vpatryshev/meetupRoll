@@ -45,5 +45,8 @@ class Boot {
         RedirectResponse("/")
       }
     }
+
+    LiftRules.ajaxStart = Full( () => LiftRules.jsArtifacts.show("ajax-spinner").cmd )
+    LiftRules.ajaxEnd = Full( () => LiftRules.jsArtifacts.hide("ajax-spinner").cmd )
   }
 }
