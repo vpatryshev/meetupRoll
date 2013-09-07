@@ -1,8 +1,8 @@
 package com.micronautics.meetupRoll.web.snippet
 
-import xml.{Utility, NodeSeq}
+import xml._
 import com.typesafe.config.{ConfigObject, ConfigFactory}
-import java.net.{URLDecoder, URL}
+import java.net.{URL, URLDecoder}
 import scalax.io.Codec
 import scalax.io.JavaConverters.asInputConverter
 import net.liftweb.util.BindHelpers._
@@ -20,6 +20,16 @@ import net.liftweb.http.js.{JsCmds, JsCommands, JsCmd}
 import net.liftweb.http.js.JE.ValById
 import java.util
 import collection.mutable.ArrayBuffer
+import xml.parsing.NoBindingFactoryAdapter
+import org.xml.sax.InputSource
+import net.liftweb.http.js.JE.ValById
+import com.micronautics.meetupRoll.web.snippet.MeetupData
+import net.liftweb.http.js.JsCmds.SetHtml
+import net.liftweb.http.js.JE.ValById
+import com.micronautics.meetupRoll.web.snippet.MeetupData
+import net.liftweb.http.js.JsCmds.SetHtml
+import java.io.StringReader
+import scala.util.parsing.json.JSON
 
 /**
  * @author Julia Astakhova
@@ -31,16 +41,29 @@ object Meetup {
 
   val random = new Random()
 
-  def loadMeetup(eventId: String = ConfigFactory.load("meetup").getString("eventId")): MeetupData = {
-    val Event = """<a href="http://www.meetup.com/.*?/events/(.*?)/" itemprop="url" class="omnCamp omnrv_rv13"><span itemprop="summary">(.*?)</span></a>""".r
-    val Date = """<span class="date">(.*)</span>""".r
-    val Title = """<h1>(.*)</h1>""".r
-    val Names = """<span class="D_name">([^<]*)""".r
-    val config = ConfigFactory.load("meetup")
-    val meetupGroup = config.getString("meetupGroup")
-    def groupUrl = "http://www.meetup.com/" + meetupGroup
-    def eventUrl(eventId: String) = groupUrl + "/events/" + eventId + "/printrsvp"
-    def attendeesPage(eventId: String) = new URL(eventUrl(eventId)).asInput.string(Codec.UTF8)
+  val config = ConfigFactory.load("meetup")
+  val meetupGroup = config.getString("meetupGroup")
+
+  def loadPage(url: String) = new URL(url).asInput.string(Codec.UTF8)
+
+  def chooseDefaultEvent(): String = {
+    val apiKey = "585e76272e2c69481bc44447c2d5c6a"
+    val calendarPage = loadPage("http://api.meetup.com/2/events?group_urlname=" + meetupGroup + "&sign=true&key=" + apiKey +
+      "&status=past,upcoming&time=-3m,1m")
+
+    case class Event(time: String, id: String)
+
+    case class EventList(results: List[Event])
+
+    import net.liftweb.json._
+
+    implicit val formats = DefaultFormats
+    val events = parse(calendarPage).extract[EventList].results
+    events.minBy(event => Math.abs(System.currentTimeMillis() - event.time.toLong)).id
+  }
+
+  def loadMeetup(eventId: String = chooseDefaultEvent()): MeetupData = {
+    def attendeesPage(eventId: String) = loadPage("http://www.meetup.com/" + meetupGroup + "/events/" + eventId + "/printrsvp")
 
     def intact = Set("", "I", "II", "III", "IV", "V")
 
@@ -65,7 +88,7 @@ object Meetup {
       if (name.contains("Grimaldi")) {
         println("wtf")
       }
-      val names = name split " " toList
+      val names = name.split(" ").toList
       val tail = names.tail
       val first = nameCase(names.head)
       if (tail.isEmpty) first else {
@@ -73,10 +96,10 @@ object Meetup {
       }
     }
 
-    val title = (Title findFirstMatchIn attendeesPage(eventId)) map (_ group (1)) getOrElse "?"
-    val names = (
-      for (m <- (Names findAllIn attendeesPage(eventId)).matchData) yield m.group(1)
-      ).toList map fixName sorted
+    val title = ("""<h1>(.*)</h1>""".r findFirstMatchIn attendeesPage(eventId)) map (_ group (1)) getOrElse "?"
+    val names =
+      (for (m <- ("""<span class="D_name">([^<]*)""".r findAllIn attendeesPage(eventId)).matchData) yield m.group(1))
+        .toList.map(fixName).sorted
 
     MeetupData(title, names, names.length)
   }
