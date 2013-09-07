@@ -28,7 +28,8 @@ class ParticipantCrowd {
       S.redirectTo("winners.html")
     }
 
-    "@numOfActualPart" #> (text("", input => { actualNumberOfParticipants.set(Some(input.toString.toInt)) })
+    "@numOfActualPart" #> (
+      text("", input => { actualNumberOfParticipants.set(Some(input.toString.toInt)) }, "class" -> "input-mini")
         ++ hidden(process))
   }
 }

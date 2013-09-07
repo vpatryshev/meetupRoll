@@ -60,17 +60,26 @@ class WinnerChoice {
 
   def currentWinnerNode = <span>{currentWinner.name}</span>
 
+  def sendNode: NodeSeq = {<span>{ajaxButton("Send", () => {
+      try {
+        val winString = winners.get map (w => (w.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
+        val settings = EmailSettingsPage.emailSettings.get
+        println(settings)
+        new Mailer().sendMail(settings.email, settings.smtpHost, settings.smtpPwd, "Giveaway winners", winString)
+        SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent."))
+      } catch {
+        case e  =>
+          e.printStackTrace()
+          SetHtml("send",
+            <span>{NodeUtil.alertError("Error trying to send the letter [" + e.getMessage + "]")}</span><span>{sendNode}</span>)
+      }
+    }, "class" -> "btn ovalbtn btn-success")}
+    </span><span class="help-inline">Email is {EmailSettingsPage.emailSettings.get.email}</span>
+  }
+
   private def updateWinner(): JsCmd = {
     if (remainingPrizes.get.get.isEmpty) {
-      val winnersToSend = winners.get
-      new Thread(new Runnable {
-        def run() {
-          val winString = winnersToSend map (w => (w.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
-          val config = ConfigFactory.load("meetup")
-          new Mailer(config).sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
-        }
-      }).start()
-      JsHideId("winnerChoice") & SetHtml("winners", winnersNode)
+      JsHideId("winnerChoice") & SetHtml("winners", winnersNode) & SetHtml("send", sendNode)
     } else {
       currentWinner = Meetup.pickWinner()
       SetHtml("currentWinner", currentWinnerNode) & SetHtml("winners", winnersNode) &
@@ -104,7 +113,9 @@ class WinnerChoice {
       "@currentPrizes" #> currentPrizesNode &
       "@currentWinner" #> currentWinnerNode &
       "@choiceNo" #> ajaxButton("Not here", () => updateWinner, "class" -> "ovalbtn btn btn-danger")
-    } else
+    } else if (!winners.get.isEmpty)
+      "@send" #> sendNode
+    else
       ClearClearable
 
     "@winners" #> winnersNode & choice

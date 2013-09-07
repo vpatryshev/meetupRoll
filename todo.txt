@@ -1,6 +1,3 @@
-  set option for email sending
-  show email settings at index page
-  show if message was sent
   move to cloud
   restrictions for inputs (only numbers for index and prizes, not empty str for new prize name)
   errors?
