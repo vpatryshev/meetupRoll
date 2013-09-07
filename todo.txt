@@ -1,12 +1,9 @@
-  IMPORTANT:
   move to cloud
   create private smtp account for sending
-  number of participants is decreasing
-
   restrictions for inputs (only numbers for index and prizes, not empty str for new prize name)
   errors?
 - resolve todo
-- show photo
+- show photos of winners
 
 TODO
 
@@ -15,9 +12,6 @@ TODO
 UI
 
 vertically align text and number input
-input too long
-yes/no - simetrically big
-several lines of question
 progress bar on remaining prize count
 oom
 put focus on number input at index.html

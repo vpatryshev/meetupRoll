@@ -24,7 +24,7 @@ class ParticipantCrowd {
 
   def render = {
     def process() = {
-      WinnerChoice.loadPrizes()
+      WinnerChoice.reload()
       S.redirectTo("winners.html")
     }
 

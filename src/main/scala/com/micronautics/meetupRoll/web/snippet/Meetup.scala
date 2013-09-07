@@ -8,7 +8,7 @@ import scalax.io.JavaConverters.asInputConverter
 import net.liftweb.util.BindHelpers._
 import net.liftweb.http.SHtml._
 import net.liftweb.http.js.JsCmds.SetHtml
-import util.Random
+import scala.util.{Sorting, Random}
 import java.text.Normalizer
 import net.liftweb.http.{S, SessionVar}
 import net.liftweb.common.Box
@@ -18,12 +18,16 @@ import scala.Some
 import com.micronautics.meetupRoll.web.snippet.MeetupData
 import net.liftweb.http.js.{JsCmds, JsCommands, JsCmd}
 import net.liftweb.http.js.JE.ValById
+import java.util
+import collection.mutable.ArrayBuffer
 
 /**
  * @author Julia Astakhova
  */
 object Meetup {
-  object choosenMeetup extends SessionVar[Option[MeetupData]](None)
+
+  object chosenMeetup extends SessionVar[MeetupData](loadMeetup())
+  object participantCrowd extends SessionVar[mutable.Buffer[String]](chosenMeetup.get.names.toBuffer)
 
   val random = new Random()
 
@@ -72,31 +76,28 @@ object Meetup {
     val title = (Title findFirstMatchIn attendeesPage(eventId)) map (_ group (1)) getOrElse "?"
     val names = (
       for (m <- (Names findAllIn attendeesPage(eventId)).matchData) yield m.group(1)
-      ).toSet.toBuffer map fixName sorted
+      ).toList map fixName sorted
 
-    MeetupData(title, names)
+    MeetupData(title, names, names.length)
   }
 
-  def meetup() = {
-    if (choosenMeetup.isEmpty)
-      choosenMeetup.set(Some(loadMeetup()))
-    choosenMeetup.is.get
-  }
+  private def meetup = chosenMeetup.get
 
-  def names() = meetup.names
+  private def participantNumber = chosenMeetup.get.names.length
 
-  def participantNumber() = names.length
+  private def names = participantCrowd.get
 
   def pickWinner(): String = {
     def normalizeName(name: String) = {
       Normalizer.normalize(name, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "")  }
 
-    def randomName = names()(random.nextInt(participantNumber))
+    val name = names(random.nextInt(names.length))
 
-    val name = randomName
-    choosenMeetup.set(Some(MeetupData(meetup().title, names() - name)))
+    participantCrowd.set(names - name)
     normalizeName(name)
   }
+
+  def reloadParticipantCrowd() = participantCrowd.set(meetup.names.toBuffer)
 }
 
 class Meetup {
@@ -105,10 +106,10 @@ class Meetup {
 
   // methods used on index.html
 
-  val title = meetup().title
+  val title = meetup.title
   val titleNodes: NodeSeq = <span>{title}</span>
 
-  val participantNumberNodes: NodeSeq = <span>{participantNumber()}</span>
+  val participantNumberNodes: NodeSeq = <span>{participantNumber}</span>
 
   //method used on "choose another meetup" page
 
@@ -116,8 +117,8 @@ class Meetup {
     "@meetupOK" #> ajaxButton(<span>Ok</span>, ValById("meetup"), (url: String) => {
         val found = """.*/events/(\d+)/""".r.findAllIn(url).matchData
         if (found.hasNext) {
-          val meetup = loadMeetup(found.next().group(1))
-          choosenMeetup.set(Some(meetup))
+          chosenMeetup.set(loadMeetup(found.next().group(1)))
+          reloadParticipantCrowd()
           S.redirectTo("/")
         } else
           SetHtml("error", NodeUtil.alertError("URL doesn't lead to a meetup page."))
@@ -125,7 +126,7 @@ class Meetup {
   }
 }
 
-case class MeetupData(title: String, names: mutable.Buffer[String])
+case class MeetupData(title: String, names: List[String], participantCount: Int)
 
 
 

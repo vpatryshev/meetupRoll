@@ -35,7 +35,7 @@ object WinnerChoice {
   object prizeList extends SessionVar[List[Prize]](List[Prize]())
   object remainingPrizes extends SessionVar[Option[Map[Prize, Int]]](None)
 
-  def loadPrizes() {
+  def reload() {
     def loadPrizesFromConfig() {
       val sponsors = ConfigFactory.load("sponsors")
       val prizesData = sponsors.getList("prizeRules")
@@ -51,6 +51,7 @@ object WinnerChoice {
     if (prizeList.get.isEmpty)
       loadPrizesFromConfig()
 
+    Meetup.reloadParticipantCrowd()
     remainingPrizes.set(Some(Map() ++ prizeList.get.map(prize => (prize -> prize.quantity))))
     winners.set(List[Winner]())
   }

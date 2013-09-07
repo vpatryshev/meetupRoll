@@ -54,7 +54,8 @@ class PrizeBoard {
         <td class="notop"><input id="addPrize" type="text" placeholder="Add new prize name..."/></td>
         <td class="notop">{addPrizeButtonNode()}</td><td class="notop"></td>
       </tr>
-  </table>                       }
+    </table>
+  }
 
   def render = {
     if (prizeList.get.isEmpty)
@@ -62,7 +63,7 @@ class PrizeBoard {
 
     "@prizeBoard" #> prizeBoardNode &
     "@prizeBoardFinished" #> ajaxButton("Finish", () => {
-      WinnerChoice.loadPrizes()
+      WinnerChoice.reload()
       S.redirectTo("winners.html")
     }, "class" -> "btn btn-success")
   }
