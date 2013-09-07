@@ -103,24 +103,24 @@ class Meetup {
 
   import Meetup._
 
+  // methods used on index.html
+
   val title = meetup().title
   val titleNodes: NodeSeq = <span>{title}</span>
 
   val participantNumberNodes: NodeSeq = <span>{participantNumber()}</span>
 
-  def render = {
-    def alertError = <div class="alert alert-error"><strong>Warning!</strong> URL doesn't lead to a meetup page.</div>
-    def alertSuccess = <div class="alert alert-success">Processing...</div>
+  //method used on "choose another meetup" page
 
+  def render = {
     "@meetupOK" #> ajaxButton(<span>Ok</span>, ValById("meetup"), (url: String) => {
         val found = """.*/events/(\d+)/""".r.findAllIn(url).matchData
         if (found.hasNext) {
           val meetup = loadMeetup(found.next().group(1))
           choosenMeetup.set(Some(meetup))
-          S.redirectTo("index.html")
-        } else {
-          SetHtml("error", alertError)
-        }
+          S.redirectTo("/")
+        } else
+          SetHtml("error", NodeUtil.alertError("URL doesn't lead to a meetup page."))
     }, "class" -> "btn btn-success")
   }
 }

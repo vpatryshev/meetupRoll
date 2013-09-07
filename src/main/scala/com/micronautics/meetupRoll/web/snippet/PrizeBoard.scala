@@ -21,27 +21,39 @@ class PrizeBoard {
   import WinnerChoice.prizeList
 
   def prizeBoardNode: NodeSeq = {
-    <table class="table">
-    {prizeList.get.sortBy(_.name).map(prize =>
-      <tr><td class="notop"><strong>{prize.name}</strong></td>
-        <td class="notop">{ajaxText(prize.quantity.toString, (quantity) => {
-          prizeList.set(Prize(prize.name, quantity.toInt) :: prizeList.get.filterNot(_ == prize))
-          JsCmds.Noop
-        })
-          }</td>
-        <td class="notop">{
-          if (prizeList.get.length > 1)
-            ajaxButton(<i class="icon-remove"></i>, () => {
-              prizeList.set(prizeList.get.filterNot(_ == prize))
-              SetHtml("prizeBoard", prizeBoardNode)
-            }, "class" -> "btn ovalbtn")
-          else ""
-          }</td></tr>)}
-    <tr><td class="notop"><input id="addPrize" type="text" placeholder="Add new prize name..."/></td>
-      <td class="notop">{ajaxButton(<i class="icon-ok"></i>, ValById("addPrize"), (prizeName: String) => {
+    def quantityInputNode(prize: Prize) =
+      ajaxText(prize.quantity.toString, (quantity) => {
+        prizeList.set(Prize(prize.name, quantity.toInt) :: prizeList.get.filterNot(_ == prize))
+        JsCmds.Noop
+      })
+
+    def removePrizeButtonNode(prize: Prize) =
+      ajaxButton(<i class="icon-remove"></i>, () => {
+        prizeList.set(prizeList.get.filterNot(_ == prize))
+        SetHtml("prizeBoard", prizeBoardNode)
+      }, "class" -> "btn ovalbtn")
+
+    def addPrizeButtonNode() =
+      ajaxButton(<i class="icon-ok"></i>, ValById("addPrize"), (prizeName: String) => {
         prizeList.set(Prize(prizeName, 1) :: prizeList.get)
         SetHtml("prizeBoard", prizeBoardNode)
-      }, "class" -> "btn ovalbtn")}</td><td class="notop"></td></tr>
+      }, "class" -> "btn ovalbtn")
+
+    <table class="table">
+      {prizeList.get.sortBy(_.name).map(prize =>
+        <tr>
+          <td class="notop"><strong>{prize.name}</strong></td>
+          <td class="notop">{quantityInputNode(prize)}</td>
+          <td class="notop">{
+            if (prizeList.get.length > 1) removePrizeButtonNode(prize)
+            else ""
+            }</td>
+        </tr>)
+      }
+      <tr>
+        <td class="notop"><input id="addPrize" type="text" placeholder="Add new prize name..."/></td>
+        <td class="notop">{addPrizeButtonNode()}</td><td class="notop"></td>
+      </tr>
   </table>                       }
 
   def render = {

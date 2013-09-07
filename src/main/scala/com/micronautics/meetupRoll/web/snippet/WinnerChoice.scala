@@ -4,6 +4,7 @@ import net.liftweb._
 import http._
 import common._
 import js.JsCmds.SetHtml
+import js.JsCmds.SetHtml
 import util.Helpers._
 import js._
 import JsCmds._
@@ -21,6 +22,9 @@ import com.micronautics.meetupRoll.web.snippet.ParticipantCrowd.actualNumberOfPa
 import com.micronautics.meetupRoll.web.snippet.Prize
 import com.micronautics.meetupRoll.web.snippet.Winner
 import com.micronautics.util.Mailer
+import com.micronautics.meetupRoll.web.snippet.Prize
+import scala.Some
+import com.micronautics.meetupRoll.web.snippet.Winner
 
 /**
  * @author Julia Astakhova
@@ -60,21 +64,23 @@ class WinnerChoice {
 
   def currentWinnerNode = <span>{currentWinner.name}</span>
 
-  def sendNode: NodeSeq = {<span>{ajaxButton("Send", () => {
-      try {
-        val winString = winners.get map (w => (w.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
-        val settings = EmailSettingsPage.emailSettings.get
-        println(settings)
-        new Mailer().sendMail(settings.email, settings.smtpHost, settings.smtpPwd, "Giveaway winners", winString)
-        SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent."))
-      } catch {
-        case e  =>
-          e.printStackTrace()
-          SetHtml("send",
-            <span>{NodeUtil.alertError("Error trying to send the letter [" + e.getMessage + "]")}</span><span>{sendNode}</span>)
-      }
-    }, "class" -> "btn ovalbtn btn-success")}
-    </span><span class="help-inline">Email is {EmailSettingsPage.emailSettings.get.email}</span>
+  def sendNode: NodeSeq = {
+    def sendButtonNode =
+      ajaxButton("Send", () =>
+        try {
+          val winString = winners.get map (w => (w.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
+          val settings = EmailSettingsPage.emailSettings.get
+          new Mailer().sendMail(settings.email, settings.smtpHost, settings.smtpPwd, "Giveaway winners", winString)
+          SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent."))
+        } catch {
+          case e  =>
+            e.printStackTrace()
+            val alert = NodeUtil.alertError("Error trying to send the letter [" + e.getMessage + "]")
+            SetHtml("send", <span>{alert}</span><span>{sendNode}</span>)
+        }
+      , "class" -> "btn ovalbtn btn-success")
+
+    <span>{sendButtonNode}</span><span class="help-inline">Email is {EmailSettingsPage.emailSettings.get.email}</span>
   }
 
   private def updateWinner(): JsCmd = {
@@ -87,22 +93,34 @@ class WinnerChoice {
     }
   }
 
-  def currentPrizesNode = <div class="span4 offset2 well prizes">
-    <div class="row"><strong class="span4 text-center prizelabel">Prizes</strong></div><ol>{
-      (List() ++ remainingPrizes.get.get.keys).sortBy(_.name).map(prize =>
-        <li>{ajaxButton(prize.name, () => {
-          winners.set(Winner(currentWinner, prize.name) :: winners.get)
-          val remainingQuantity: Int = remainingPrizes.get.get(prize)
-          remainingPrizes.set(Some(remainingPrizes.get.get - prize))
-          if (remainingQuantity > 1)
-            remainingPrizes.set(Some(new ListMap() + (prize -> (remainingQuantity - 1)) ++ remainingPrizes.get.get))
-          updateWinner()
-        }, "class" -> "btn btn-success ovalbtn prizelabel")}</li>)
-      }</ol></div>
+  def currentPrizesNode = {
+    val remainingPrizeList = List() ++ remainingPrizes.get.get.keys
 
-  def winnersNode = <table class="table table-striped">
-    {winners.get.sortBy(_.prize).map(winner =>
-      <tr><td><strong>{winner.name}</strong></td><td>won</td><td><strong>{winner.prize}</strong></td></tr>)}
+    def prizeButtonNode(prize: Prize) =
+      ajaxButton(prize.name, () => {
+        winners.set(Winner(currentWinner, prize.name) :: winners.get)
+        val remainingQuantity: Int = remainingPrizes.get.get(prize)
+        remainingPrizes.set(Some(remainingPrizes.get.get - prize))
+        if (remainingQuantity > 1)
+          remainingPrizes.set(Some(new ListMap() + (prize -> (remainingQuantity - 1)) ++ remainingPrizes.get.get))
+        updateWinner()
+      }, "class" -> "btn btn-success ovalbtn prizelabel")
+
+    <div class="span4 offset2 well prizes">
+      <div class="row"><strong class="span4 text-center prizelabel">Prizes</strong></div>
+      <ol>{remainingPrizeList.sortBy(_.name).map(prize => <li>{prizeButtonNode(prize)}</li>)}</ol>
+    </div>
+  }
+
+  def winnersNode =
+    <table class="table table-striped">
+      {winners.get.sortBy(_.prize).map(winner =>
+        <tr>
+          <td><strong>{winner.name}</strong></td>
+          <td>won</td>
+          <td><strong>{winner.prize}</strong></td>
+        </tr>)
+      }
   </table>
 
 
