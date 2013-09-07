@@ -36,10 +36,10 @@ import xml.NodeSeq
 
 object MeetupRoll extends App {
   private val random = new Random()
- // Gui.startup(null)
+  // Gui.startup(null)
 
   /** Events on front page
-   * TODO parse them and find today's event, or the next upcoming one, or the most recent one if none are upcoming */
+    * TODO parse them and find today's event, or the next upcoming one, or the most recent one if none are upcoming */
   private val Event = """<a href="http://www.meetup.com/.*?/events/(.*?)/" itemprop="url" class="omnCamp omnrv_rv13"><span itemprop="summary">(.*?)</span></a>""".r
   private val Date = """<span class="date">(.*)</span>""".r
   private val Title = """<title>Meetup.com &rsaquo; RSVP List: (.*)</title>""".r
@@ -51,19 +51,19 @@ object MeetupRoll extends App {
   private val prizesData = sponsors.getList("prizeRules")
   private val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
   println(prizeRules)
-  private val mailer = new Mailer(config)
+  private val mailer = new Mailer()
   private def groupUrl = "http://www.meetup.com/" + meetupGroup
   private def eventUrl = groupUrl + "/events/" + eventId + "/printrsvp"
 
-//  private val calendarPage = new URL(groupUrl + "/events/calendar").asInput.string
+  //  private val calendarPage = new URL(groupUrl + "/events/calendar").asInput.string
 
   private val EventUrlPattern = ("a href=\"" + groupUrl + "/events/([\\d]+)/\"").r
-/*
-  calendarPage match {
-    case EventUrlPattern(id) => println(s"Hurray! found event id $id"); System.exit(1)
-    case x => println(s"Alas, $x"); System.exit(1)
-  }
-*/
+  /*
+    calendarPage match {
+      case EventUrlPattern(id) => println(s"Hurray! found event id $id"); System.exit(1)
+      case x => println(s"Alas, $x"); System.exit(1)
+    }
+  */
   private val attendeesPage = new URL(eventUrl).asInput.string(Codec.UTF8)
 
   private val title = (Title findFirstMatchIn attendeesPage) map (_ group (1)) getOrElse "?"
@@ -103,7 +103,7 @@ object MeetupRoll extends App {
 
 
   /**Mutable list of full names. If a member did not specify a last meetupName they will not appear in the list.
-   * Names that are chosen are removed so they cannot be chosen again. */
+    * Names that are chosen are removed so they cannot be chosen again. */
   private var names = (for (m <- (Names findAllIn attendeesPage).matchData)
   yield m.group(1)).toSet.toBuffer map fixName sorted
 
@@ -117,8 +117,8 @@ object MeetupRoll extends App {
     def escapeChar(c: Char): xml.Node =
       if (c > 0x7F || Character.isISOControl(c))
         xml.EntityRef("#" + Integer.toString(c, 10))
-    else
-      xml.Text(c.toString)
+      else
+        xml.Text(c.toString)
 
     new xml.Group(xmlText.map(escapeChar(_)))
   }
@@ -129,7 +129,7 @@ object MeetupRoll extends App {
   val col2 = th("Your Signature or Something")
   def table(list:List[String]) = if (list.isEmpty)(<p></p>) else <center><table border="1"><tr>{col1}{col2}</tr>{list map tr}</table></center>
 
-/*  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y"))*/ {
+  /*  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y"))*/ {
     val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".html")))
     out.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head><style>\n.break { page-break-before: always; }\n</style><body>")
     names.toList.grouped(nPerPage).zipWithIndex.foreach{case (list:List[String], pageNo) =>
@@ -217,7 +217,12 @@ object MeetupRoll extends App {
     if (winners.size > 0) {
       val winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "\n  ", "\n")
       println(winString + "\nSending email so you remember...")
-      mailer.sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
+      mailer.sendMail(
+        config.getString("smtpUser"),
+        config.getString("smtpHost"),
+        config.getString("smtpPwd"),
+        "Giveaway winners",
+        winString)
     }
     println("Done.")
     System.exit(0)
@@ -236,7 +241,12 @@ object MeetupRoll extends App {
         if (winners.size > 0) {
           val winString = winners map (w => (w._1 + ": " + w._2)) mkString("Winners are:\n  ", "  ", "\n")
           println(winString + "\nSending email so you remember...")
-          mailer.sendMail(config.getString("smtpUser"), config.getString("smtpUser"), "Giveaway winners", winString)
+          mailer.sendMail(
+            config.getString("smtpUser"),
+            config.getString("smtpHost"),
+            config.getString("smtpPwd"),
+            "Giveaway winners",
+            winString)
         }
         println("Done.")
         System.exit(0)

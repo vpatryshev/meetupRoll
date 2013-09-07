@@ -1,0 +1,10 @@
+<lift:surround with="default" at="content">
+    <h2><lift:meetup.titleNodes /></h2>
+    <lift:meetup.participantNumberNodes /> participants in the roll.
+    <form class="lift:form.ajax">
+        <div class="lift:ParticipantCrowd">
+            <span>Set number of actual participants:</span>
+            <input type="text" name="numOfActualPart"/>
+        </div>
+    </form>
+</lift:surround>

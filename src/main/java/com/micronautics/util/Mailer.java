@@ -28,8 +28,6 @@ package com.micronautics.util;
    See the License for the specific language governing permissions and
    limitations under the License. */
 
-import com.typesafe.config.Config;
-
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -37,39 +35,21 @@ import java.util.Date;
 import java.util.Properties;
 
 public class Mailer {
-    private Config config;
+    private static int SMTP_PORT = 465;
 
-    public Mailer(Config config) {
-        this.config = config;
-    }
-    private boolean dryRun = true;
-    private String smtpHost;
-    private String smtpUser;
-    private String smtpPwd;
-    private int smtpPort;
-
-    private static void log(String s) { System.out.println(s); }
-
-    public void sendMail(String from, String recipients, String subject, String body) throws MessagingException {
-        if (dryRun) {
-            log("From: " + smtpUser);
-            log("To: " + recipients);
-            log("Subj: " + subject);
-            log("\n---------------------------\n" + body + "\n----------------------\n");
-            return;
-        }
+    public void sendMail(String email, String smtpHost, String smtpPwd, String subject, String body) throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.host", smtpHost);
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.port", smtpPort);
+        props.put("mail.smtp.port", SMTP_PORT);
 
-        Authenticator auth = new SMTPAuthenticator();
+        Authenticator auth = new SMTPAuthenticator(email, smtpPwd);
         Session session = Session.getDefaultInstance(props, auth);
         session.setDebug(false);
 
         Message msg = new MimeMessage(session);
-        final Address[] recipientAddresses = InternetAddress.parse(recipients);
+        final Address[] recipientAddresses = InternetAddress.parse(email);
         msg.setRecipients(Message.RecipientType.TO, recipientAddresses);
         msg.setSentDate(new Date());
         msg.setSubject(subject);
@@ -77,15 +57,13 @@ public class Mailer {
         msg.setSubject(subject);
         msg.setText(body);
 
-        InternetAddress addressFrom = new InternetAddress(from);
+        InternetAddress addressFrom = new InternetAddress(email);
         msg.setFrom(addressFrom);
 
         Transport transport = session.getTransport("smtps");
         try {
-            transport.connect(smtpHost, smtpPort, smtpUser, smtpPwd);
+            transport.connect(smtpHost, SMTP_PORT, email, smtpPwd);
             transport.sendMessage(msg, recipientAddresses);
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
         } finally {
             transport.close();
         }
@@ -96,10 +74,16 @@ public class Mailer {
      */
     private class SMTPAuthenticator extends javax.mail.Authenticator {
 
+        private String smtpUser;
+        private String smtpPwd;
+
+        public SMTPAuthenticator(String smtpUser, String smtpPwd) {
+            this.smtpUser = smtpUser;
+            this.smtpPwd = smtpPwd;
+        }
+
         public PasswordAuthentication getPasswordAuthentication() {
-            String username = smtpUser;
-            String password = smtpPwd;
-            return new PasswordAuthentication(username, password);
+            return new PasswordAuthentication(smtpUser, smtpPwd);
         }
     }
 }
