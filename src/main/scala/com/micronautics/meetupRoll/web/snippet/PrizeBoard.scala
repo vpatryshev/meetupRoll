@@ -3,10 +3,7 @@ package com.micronautics.meetupRoll.web.snippet
 import net.liftweb.http._
 import js.JE.ValById
 import js.JsCmds.SetHtml
-import net.liftweb.http.js._
 import net.liftweb.http.SHtml._
-import scala.Some
-import net.liftweb.util._
 import net.liftweb.util.Helpers._
 import net.liftweb.http.js.JsCmds
 import xml.NodeSeq

@@ -7,10 +7,6 @@ import http._
 import common._
 import util.Helpers._
 import js._
-import JsCmds._
-import JE._
-import scala.xml.NodeSeq
-import net.liftweb.util
 
 /**
  * @author Julia Astakhova

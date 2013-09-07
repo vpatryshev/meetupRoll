@@ -11,25 +11,10 @@ import net.liftweb.http.js.JsCmds.SetHtml
 import scala.util.{Sorting, Random}
 import java.text.Normalizer
 import net.liftweb.http.{S, SessionVar}
-import net.liftweb.common.Box
 import collection.mutable
-import com.micronautics.meetupRoll.web.snippet.WinnerChoice.prizeList
-import scala.Some
-import com.micronautics.meetupRoll.web.snippet.MeetupData
 import net.liftweb.http.js.{JsCmds, JsCommands, JsCmd}
 import net.liftweb.http.js.JE.ValById
-import java.util
-import collection.mutable.ArrayBuffer
-import xml.parsing.NoBindingFactoryAdapter
-import org.xml.sax.InputSource
-import net.liftweb.http.js.JE.ValById
-import com.micronautics.meetupRoll.web.snippet.MeetupData
 import net.liftweb.http.js.JsCmds.SetHtml
-import net.liftweb.http.js.JE.ValById
-import com.micronautics.meetupRoll.web.snippet.MeetupData
-import net.liftweb.http.js.JsCmds.SetHtml
-import java.io.StringReader
-import scala.util.parsing.json.JSON
 
 /**
  * @author Julia Astakhova

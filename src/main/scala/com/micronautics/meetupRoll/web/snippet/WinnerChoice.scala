@@ -2,16 +2,10 @@ package com.micronautics.meetupRoll.web.snippet
 
 import net.liftweb._
 import http._
-import common._
-import js.JsCmds.SetHtml
-import js.JsCmds.SetHtml
 import util.Helpers._
 import js._
 import JsCmds._
 import JE._
-import net.liftweb.util
-import java.util
-import net.liftweb.util
 import scala.collection.immutable.ListMap
 import http.SHtml._
 import xml.{NodeSeq, Elem}
@@ -19,12 +13,8 @@ import net.liftweb.util._
 import com.typesafe.config.{ConfigObject, ConfigFactory}
 import com.micronautics.meetupRoll.PrizeRules
 import com.micronautics.meetupRoll.web.snippet.ParticipantCrowd.actualNumberOfParticipants
-import com.micronautics.meetupRoll.web.snippet.Prize
-import com.micronautics.meetupRoll.web.snippet.Winner
 import com.micronautics.util.Mailer
-import com.micronautics.meetupRoll.web.snippet.Prize
 import scala.Some
-import com.micronautics.meetupRoll.web.snippet.Winner
 
 /**
  * @author Julia Astakhova
