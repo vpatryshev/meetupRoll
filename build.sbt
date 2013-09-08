@@ -10,7 +10,7 @@ version := "0.3"
 
 scalaVersion := "2.10.1"
 
-scalaVersion in update := "2.10"
+scalaVersion in update := "2.10.1"
 
 javacOptions ++= Seq("-Xlint:deprecation", "-Xlint:unchecked")
 
@@ -27,14 +27,21 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.github.scala-incubator.io" %% "scala-io-core" % "0.4.2" withSources,
-  "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.2" withSources,
-  "javax.mail"                    %  "mail"          % "latest.integration" withSources,
-  "org.scala-tools.time"          %  "time_2.9.1"    % "0.5",
-  "org.scala-lang"                %  "scala-swing"   % "2.10.1" withSources,
-  "org.scalatest"                 %% "scalatest"     % "latest.milestone"   % "test" withSources,
-  "com.typesafe"                  %  "config"        % "1.0.1"                       withSources
+  "com.github.scala-incubator.io" %% "scala-io-core"      % "0.4.2" withSources,
+  "com.github.scala-incubator.io" %% "scala-io-file"      % "0.4.2" withSources,
+  "javax.mail"                    %  "mail"               % "latest.integration" withSources,
+  "org.scala-tools.time"          %  "time_2.9.1"         % "0.5",
+  "org.scala-lang"                %  "scala-swing"        % "2.10.1" withSources,
+  "org.scalatest"                 %% "scalatest"          % "latest.milestone"    % "test" withSources,
+  "com.typesafe"                  %  "config"             % "1.0.1"                       withSources,
+  "net.liftweb"                   %% "lift-webkit"        % "2.5-RC1"             % "compile",
+  "net.liftmodules"               %% "lift-jquery-module" % "2.5-RC1-2.2",
+  "org.eclipse.jetty"             %  "jetty-webapp"       % "8.1.7.v20120910"     % "container,test",
+  "org.eclipse.jetty.orbit"       %  "javax.servlet"      % "3.0.0.v201112011016" % "container,test" artifacts Artifact("javax.servlet", "jar", "jar"),
+  "ch.qos.logback"                %  "logback-classic"    % "1.0.6"
 )
 
 // add all the settings in assemblySettings into each SBT project
 //seq(assemblySettings: _*)
+
+seq(com.github.siasia.WebPlugin.webSettings :_*)
