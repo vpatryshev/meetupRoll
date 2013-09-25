@@ -7,3 +7,7 @@ Run this as a web server with
 
     ./sbt
     > container:start
+
+... and restart with
+
+    > ~;container:start; container:reload /

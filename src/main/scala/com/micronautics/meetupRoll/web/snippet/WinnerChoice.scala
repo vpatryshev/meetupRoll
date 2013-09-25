@@ -51,7 +51,7 @@ class WinnerChoice {
 
   import WinnerChoice._
 
-  var currentWinner: String = Meetup.pickWinner()
+  var currentWinner: Attendant = Meetup.pickWinner()
 
   def currentWinnerNode = <span>{currentWinner.name}</span>
 
@@ -59,7 +59,7 @@ class WinnerChoice {
     def sendButtonNode =
       ajaxButton("Send", () =>
         try {
-          val winString = winners.get map (w => (w.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
+          val winString = winners.get map (w => (w.person.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
           val settings = EmailSettingsPage.emailSettings.get
           new Mailer().sendMail(settings.email, settings.smtpHost, settings.smtpPwd, "Giveaway winners", winString)
           SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent."))
@@ -80,11 +80,11 @@ class WinnerChoice {
     } else {
       currentWinner = Meetup.pickWinner()
       SetHtml("currentWinner", currentWinnerNode) & SetHtml("winners", winnersNode) &
-        SetHtml("currentPrizes", currentPrizesNode)
+        SetHtml("currentPrizes", currentPrizesAndPhotoNode)
     }
   }
 
-  def currentPrizesNode = {
+  def currentPrizesAndPhotoNode = {
     val remainingPrizeList = List() ++ remainingPrizes.get.get.keys
 
     def prizeButtonNode(prize: Prize) =
@@ -96,18 +96,27 @@ class WinnerChoice {
           remainingPrizes.set(Some(new ListMap() + (prize -> (remainingQuantity - 1)) ++ remainingPrizes.get.get))
         updateWinner()
       }, "class" -> "btn btn-success ovalbtn prizelabel")
+    <span class="row">
+      {
+        currentWinner.photo.map(photo =>
+                  <span class="span2 prizephoto"><img src={photo}/></span>
+            ).getOrElse(
+                  <span class="span2"/>)
+      }
+      <div class="span4 offset2 well prizes">
+        <h4 class="prizelabel text-center">Prizes</h4>
 
-    <div class="span4 offset2 well prizes">
-      <div class="row"><strong class="span4 text-center prizelabel">Prizes</strong></div>
-      <ol>{remainingPrizeList.sortBy(_.name).map(prize => <li>{prizeButtonNode(prize)}</li>)}</ol>
-    </div>
+        <ol>{remainingPrizeList.sortBy(_.name).map(prize => <li>{prizeButtonNode(prize)}</li>)}</ol>
+      </div>
+    </span>
   }
 
   def winnersNode =
     <table class="table table-striped">
       {winners.get.sortBy(_.prize).map(winner =>
         <tr>
-          <td><strong>{winner.name}</strong></td>
+          {winner.person.thumbnail.map(photo => <td><img src={photo} width="40"/></td>).getOrElse(<td/>)}
+          <td><strong>{winner.person.name}</strong></td>
           <td>won</td>
           <td><strong>{winner.prize}</strong></td>
         </tr>)
@@ -119,7 +128,7 @@ class WinnerChoice {
     val choice: CssSel = if (!remainingPrizes.get.get.isEmpty) {
       "@text1" #> "is a winner. Choose a prize:" &
       "@text2" #> "Or mark if the person is not here:" &
-      "@currentPrizes" #> currentPrizesNode &
+      "@currentPrizes" #> currentPrizesAndPhotoNode &
       "@currentWinner" #> currentWinnerNode &
       "@choiceNo" #> ajaxButton("Not here", () => updateWinner, "class" -> "ovalbtn btn btn-danger")
     } else if (!winners.get.isEmpty)
@@ -131,6 +140,6 @@ class WinnerChoice {
   }
 }
 
-case class Winner(name: String, prize: String)
+case class Winner(person: Attendant, prize: String)
 
 case class Prize(name: String, quantity: Int)
