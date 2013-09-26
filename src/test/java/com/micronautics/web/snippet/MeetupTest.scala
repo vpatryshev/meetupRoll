@@ -2,6 +2,7 @@ package com.micronautics.web.snippet
 
 import org.scalatest.{Matchers, FlatSpec}
 import util.Success
+import com.typesafe.config.ConfigFactory
 
 /**
  * @author Julia Astakhova

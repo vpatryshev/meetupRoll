@@ -15,6 +15,7 @@ import com.micronautics.meetupRoll.PrizeRules
 import com.micronautics.meetupRoll.web.snippet.ParticipantCrowd.actualNumberOfParticipants
 import com.micronautics.util.Mailer
 import scala.Some
+import scala.util.{Try, Success, Failure}
 
 /**
  * @author Julia Astakhova
@@ -57,21 +58,26 @@ class WinnerChoice {
 
   def sendNode: NodeSeq = {
     def sendButtonNode =
-      ajaxButton("Send", () =>
-        try {
-          val winString = winners.get map (w => (w.person.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
-          val settings = EmailSettingsPage.emailSettings.get
-          new Mailer().sendMail(settings.email, settings.smtpHost, settings.smtpPwd, "Giveaway winners", winString)
-          SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent."))
-        } catch {
-          case e  =>
-            e.printStackTrace()
-            val alert = NodeUtil.alertError("Error trying to send the letter [" + e.getMessage + "]")
-            SetHtml("send", <span>{alert}</span><span>{sendNode}</span>)
+      ajaxButton("Send", () => {
+        def handleError(e: Throwable): JsCmd = {
+          e.printStackTrace()
+          val alert = NodeUtil.alertError("Error trying to send the letter [" + e.getMessage + "]")
+          SetHtml("send", <span>{alert}</span><span>{sendNode}</span>)
         }
-      , "class" -> "btn ovalbtn btn-success")
 
-    <span>{sendButtonNode}</span><span class="help-inline">Email is {EmailSettingsPage.emailSettings.get.email}</span>
+        EmailSettingsPage.emailSettings.get.flatMap(settings => Try {
+          val winString = winners.get map (w => (w.person.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
+          new Mailer().sendMail(
+            settings.email, settings.smtpHost, settings.smtpSender, settings.smtpPwd, "Giveaway winners", winString)
+          SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent."))}
+        ) match {
+          case Failure(e) => handleError(e)
+          case Success(cmd) => cmd
+        }
+      }, "class" -> "btn ovalbtn btn-success")
+
+    <span>{sendButtonNode}</span><span class="help-inline">
+      Email is {EmailSettingsPage.emailSettings.get.map(_.email).getOrElse("undefined")}</span>
   }
 
   private def updateWinner(): JsCmd = {

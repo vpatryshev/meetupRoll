@@ -37,14 +37,15 @@ import java.util.Properties;
 public class Mailer {
     private static int SMTP_PORT = 465;
 
-    public void sendMail(String email, String smtpHost, String smtpPwd, String subject, String body) throws MessagingException {
+    public void sendMail(String email, String smtpHost, String smtpSender, String smtpPwd, String subject, String body)
+            throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.host", smtpHost);
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.port", SMTP_PORT);
 
-        Authenticator auth = new SMTPAuthenticator(email, smtpPwd);
+        Authenticator auth = new SMTPAuthenticator(smtpSender, smtpPwd);
         Session session = Session.getDefaultInstance(props, auth);
         session.setDebug(false);
 
@@ -62,7 +63,7 @@ public class Mailer {
 
         Transport transport = session.getTransport("smtps");
         try {
-            transport.connect(smtpHost, SMTP_PORT, email, smtpPwd);
+            transport.connect(smtpHost, SMTP_PORT, smtpSender, smtpPwd);
             transport.sendMessage(msg, recipientAddresses);
         } finally {
             transport.close();

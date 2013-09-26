@@ -34,7 +34,7 @@ object Meetup {
 
   val config = Try(ConfigFactory.load("meetup"))
   val meetupGroup = config.map(_.getString("meetupGroup")).getOrElse("")
-  val apiKey = config.map(_.getString("apiKey")).getOrElse("")
+  val apiKey = Try(ConfigFactory.load()).map(_.getString("apiKey")).getOrElse("")
   val apiUrl = "http://api.meetup.com/2"
 
   implicit val formats = DefaultFormats
