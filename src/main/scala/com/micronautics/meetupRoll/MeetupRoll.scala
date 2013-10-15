@@ -220,6 +220,7 @@ object MeetupRoll extends App {
       mailer.sendMail(
         config.getString("smtpUser"),
         config.getString("smtpHost"),
+        config.getString("smtpUser"),
         config.getString("smtpPwd"),
         "Giveaway winners",
         winString)
@@ -244,6 +245,7 @@ object MeetupRoll extends App {
           mailer.sendMail(
             config.getString("smtpUser"),
             config.getString("smtpHost"),
+            config.getString("smtpUser"),
             config.getString("smtpPwd"),
             "Giveaway winners",
             winString)

@@ -10,6 +10,7 @@ import sitemap._
 import Loc._
 import sun.nio.cs.StandardCharsets
 import org.apache.commons.codec.CharEncoding
+import com.micronautics.meetupRoll.web.snippet.{RealMeetupAPI, Meetup}
 
 class Boot {
   def boot {
@@ -28,5 +29,8 @@ class Boot {
 
     LiftRules.ajaxStart = Full( () => LiftRules.jsArtifacts.show("ajax-spinner").cmd )
     LiftRules.ajaxEnd = Full( () => LiftRules.jsArtifacts.hide("ajax-spinner").cmd )
+
+    // comment this line to work offline with a stub
+    Meetup.meetupAPI = RealMeetupAPI
   }
 }
