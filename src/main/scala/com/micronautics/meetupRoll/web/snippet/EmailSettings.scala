@@ -11,6 +11,7 @@ import http._
 import common._
 import util.Helpers._
 import js._
+import scala.util.Try
 
 
 /**
@@ -19,30 +20,30 @@ import js._
  * Date: 9/6/13
  */
 object EmailSettingsPage {
-  object emailSettings extends SessionVar[EmailSettings](new EmailSettings(ConfigFactory.load("meetup")))
+  object emailSettings extends SessionVar[Try[EmailSettings]](Try(new EmailSettings(ConfigFactory.load())))
 }
 
 class EmailSettingsPage {
   import EmailSettingsPage.emailSettings
 
   def render = {
-    var email = emailSettings.get.email
-    var host = emailSettings.get.smtpHost
-    var pwd = emailSettings.get.smtpPwd
+    var email = emailSettings.get.map(_.email).getOrElse("undefined")
 
     def process() {
-      emailSettings.set(EmailSettings(emailSettings.get.toSend, email, host, pwd))
+      emailSettings.set(emailSettings.get.map(_.copy(email = email)))
       S.redirectTo("winners.html")
     }
 
     "@email"    #> text(email, email = _) &
-    "@smtpHost" #> text(host, host = _) &
-    "@smtpPwd"  #> password(pwd, pwd = _) &
     "type=submit" #> SHtml.onSubmitUnit(process)
   }
 }
 
-case class EmailSettings(toSend: Boolean, email: String, smtpHost: String, smtpPwd: String) {
+case class EmailSettings(toSend: Boolean, email: String, smtpHost: String, smtpSender: String, smtpPwd: String) {
   def this(config: Config) =
-    this(false, config.getString("smtpUser"), config.getString("smtpHost"), config.getString("smtpPwd"))
+    this(false,
+      config.getString("smtpUser"),
+      config.getString("smtpHost"),
+      config.getString("smtpSender"),
+      config.getString("smtpPwd"))
 }
