@@ -86,7 +86,7 @@ case class Attendant(name: String, photo: Option[String], thumbnail: Option[Stri
 
 object MeetupData {
 
-  val stub = MeetupData("Meetup information is unreachable", List.empty)
+  val stub = new MeetupData("Meetup information is unreachable", List.empty)
 
   def unbox(tried: Try[MeetupData]): MeetupData = tried match {
     case Success(x) => x
@@ -97,7 +97,9 @@ object MeetupData {
   }
 }
 
-case class MeetupData(title: String, participants: List[Attendant])
+case class MeetupData(id: String, title: String, participants: List[Attendant]) {
+  def this(title: String, participants: List[Attendant]) = this("", title, participants)
+}
 
 
 
