@@ -161,18 +161,23 @@ class WinnerChoice {
 
 
   def render = {
-    val choice: CssSel = if (!remainingPrizes.get.get.isEmpty) {
-      "@text1" #> "is a winner. Choose a prize:" &
-      "@text2" #> "Or mark if the person is not here:" &
-      "@currentPrizes" #> currentPrizesAndPhotoNode &
-      "@currentWinner" #> currentWinnerNode &
-      "@choiceNo" #> ajaxButton("Not here", () => updateWinner, "class" -> "ovalbtn btn btn-danger")
-    } else if (!winners.get.isEmpty)
-      "@send" #> sendNode
-    else
-      ClearClearable
+    remainingPrizes.get match {
+      case None => S.redirectTo("/")
+      case Some(prizes) => {
+        val choice: CssSel = if (!prizes.isEmpty) {
+          "@text1" #> "is a winner. Choose a prize:" &
+            "@text2" #> "Or mark if the person is not here:" &
+            "@currentPrizes" #> currentPrizesAndPhotoNode &
+            "@currentWinner" #> currentWinnerNode &
+            "@choiceNo" #> ajaxButton("Not here", () => updateWinner, "class" -> "ovalbtn btn btn-danger")
+        } else if (!winners.get.isEmpty)
+          "@send" #> sendNode
+        else
+          ClearClearable
 
-    "@winners" #> winnersNode & choice
+        "@winners" #> winnersNode & choice
+      }
+    }
   }
 }
 
