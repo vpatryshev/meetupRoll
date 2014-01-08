@@ -45,11 +45,11 @@ object MeetupRoll extends App {
   private val Title = """<title>Meetup.com &rsaquo; RSVP List: (.*)</title>""".r
   private val Names = """<span class="D_name">([^<]*)""".r
   val config = ConfigFactory.load("meetup")
-  private val eventId = config.getString("eventId")
-  private val meetupGroup = config.getString("meetupGroup")
-  val sponsors = ConfigFactory.load("sponsors")
-  private val prizesData = sponsors.getList("prizeRules")
-  private val prizeRules = prizesData.toArray.toList.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
+  private val eventId = "154014822"//config.getString("eventId")
+  private val meetupGroup = "Scala-Bay"//config.getString("meetupGroup")
+  val sponsors = ""// ConfigFactory.load("sponsors")
+  private val prizesData = List[String]()//sponsors.getList("prizeRules")
+  private val prizeRules = prizesData.toArray.toList//.collect {case c:ConfigObject => c} .map (PrizeRules.apply)
   println(prizeRules)
   private val mailer = new Mailer()
   private def groupUrl = "http://www.meetup.com/" + meetupGroup
@@ -129,6 +129,7 @@ object MeetupRoll extends App {
   val col2 = th("Your Signature or Something")
   def table(list:List[String]) = if (list.isEmpty)(<p></p>) else <center><table border="1"><tr>{col1}{col2}</tr>{list map tr}</table></center>
 
+  def printRoster =
   /*  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y"))*/ {
     val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".html")))
     out.println("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html;charset=utf-8\"></head><style>\n.break { page-break-before: always; }\n</style><body>")
@@ -145,6 +146,16 @@ object MeetupRoll extends App {
     out.println("</body></html>")
     out.close
   }
+
+  printRoster
+
+  def dumpRoster =
+  /*  if (Console.readLine("Want to prepare the roster for printing? >").toLowerCase.startsWith("y"))*/ {
+    val out = new PrintWriter(new FileWriter(new File("meetup." + new SimpleDateFormat("yyyy-MM-dd").format(new Date) + ".csv")))
+    out.write(names.toList.mkString(","))
+    out.close
+  }
+  dumpRoster
 
   def normalizeName(name: String) = {
     Normalizer.normalize(name, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "")  }
@@ -208,7 +219,7 @@ object MeetupRoll extends App {
 
   def runByRules {
     println("--RUNNING BY RULES--")
-    val numPresent = Console.readLine("Signed up " + numNames + "... how many are here? >").toInt
+    val numPresent = Console.readLine("Signed up " + numNames + "... how many are here? >").toInt/*
     for (rule <- prizeRules) {
       val numPrizes = rule.forNumberOfParticipants(numPresent)
       println("--RULE " + rule + "--> " + numPrizes)
@@ -224,7 +235,7 @@ object MeetupRoll extends App {
         config.getString("smtpPwd"),
         "Giveaway winners",
         winString)
-    }
+    }*/
     println("Done.")
     System.exit(0)
 
