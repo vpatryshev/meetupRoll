@@ -93,7 +93,7 @@ object RealMeetupAPI extends MeetupAPI {
           entry.member.name), entry.member_photo.map(_.photo_link), entry.member_photo.map(_.thumb_link))).
         sortBy(_.name)
 
-      MeetupData(title, attendants)
+      MeetupData(eventId, title, attendants)
     }
   }
 }
@@ -111,6 +111,6 @@ object MeetupAPIStub extends MeetupAPI {
     val attendants = (1 to 50).foldLeft(List[String]())((res, _) => (next(names) + " " + next(surnames)) :: res).
       map(Attendant(_, None, None))
 
-    MeetupData("The most glorious meetup", attendants)
+    new MeetupData("The most glorious meetup", attendants)
   }
 }

@@ -16,6 +16,9 @@ import com.micronautics.meetupRoll.web.snippet.ParticipantCrowd.actualNumberOfPa
 import com.micronautics.util.Mailer
 import scala.Some
 import scala.util.{Try, Success, Failure}
+import scalax.io._
+import java.io.File
+import com.github.nscala_time.time.Imports._
 
 /**
  * @author Julia Astakhova
@@ -59,20 +62,47 @@ class WinnerChoice {
   def sendNode: NodeSeq = {
     def sendButtonNode =
       ajaxButton("Send", () => {
-        def handleError(e: Throwable): JsCmd = {
-          e.printStackTrace()
-          val alert = NodeUtil.alertError("Error trying to send the letter [" + e.getMessage + "]")
-          SetHtml("send", <span>{alert}</span><span>{sendNode}</span>)
+        def alertResults(message2error: Map[Pair[String, String], Try[Unit]]): JsCmd = {
+          message2error.values.filter(_.isFailure).foreach(_.failed.get.printStackTrace())
+          val alertNodes = message2error.map{
+            case (message, Success(_)) => NodeUtil.alertSuccess(message._1)
+            case (message, Failure(error)) => NodeUtil.alertError(message._2 + " [" + error.getMessage + "]")
+          }.foldLeft(<span/>){case (res, node) => <span><span>{res}</span><span>{node}</span></span>}
+          SetHtml("send", <span>{alertNodes}</span><span>{sendNode}</span>)
         }
 
-        EmailSettingsPage.emailSettings.get.flatMap(settings => Try {
-          val winString = winners.get map (w => (w.person.name + ": " + w.prize)) mkString("Winners are:\n  ", "\n  ", "\n")
+        val meetupName = Meetup.chosenMeetup.get.map(_.title).getOrElse("meetup")
+
+        val winString = winners.get map (w => (w.person.name + ": " + w.prize)) mkString(
+          "Winners for " + meetupName + " at " + DateTime.now + " are:\n  ", "\n  ", "\n")
+
+        val trySaveLocally = Meetup.chosenMeetup.get.flatMap(meetup => Try {
+          val pathToSaveLocally = RealMeetupAPI.config.map(_.getString("localPath")).getOrElse("./")
+          val pathDirectory = new File(pathToSaveLocally)
+          if (!pathDirectory.exists()) {
+            throw new RuntimeException("Not enough permissions to create a directory for the local save action")
+          }
+          val fileName = pathToSaveLocally + meetup.id + ".txt"
+          Resource.fromFile(fileName).write(winString)(Codec.UTF8)
+          println("========================");
+          println("Data was saved to " + new File(fileName).getAbsolutePath);
+          println("========================");
+        })
+
+        val trySend = EmailSettingsPage.emailSettings.get.flatMap(settings => Try {
           new Mailer().sendMail(
             settings.email, settings.smtpHost, settings.smtpSender, settings.smtpPwd, "Giveaway winners", winString)
-          SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent."))}
-        ) match {
-          case Failure(e) => handleError(e)
-          case Success(cmd) => cmd
+        })
+
+        val message2try = Map(
+          Pair("The letter was successfully sent", "Problem trying to send the letter") -> trySend,
+          Pair("The winners list was saved locally", "Problem with saving locally") -> trySaveLocally
+        )
+
+        if (message2try.values.forall(_.isSuccess)) {
+          SetHtml("send", NodeUtil.alertSuccess("The letter was successfully sent and saved locally."))
+        } else {
+          alertResults(message2try)
         }
       }, "class" -> "btn ovalbtn btn-success")
 
@@ -131,18 +161,23 @@ class WinnerChoice {
 
 
   def render = {
-    val choice: CssSel = if (!remainingPrizes.get.get.isEmpty) {
-      "@text1" #> "is a winner. Choose a prize:" &
-      "@text2" #> "Or mark if the person is not here:" &
-      "@currentPrizes" #> currentPrizesAndPhotoNode &
-      "@currentWinner" #> currentWinnerNode &
-      "@choiceNo" #> ajaxButton("Not here", () => updateWinner, "class" -> "ovalbtn btn btn-danger")
-    } else if (!winners.get.isEmpty)
-      "@send" #> sendNode
-    else
-      ClearClearable
+    remainingPrizes.get match {
+      case None => S.redirectTo("/")
+      case Some(prizes) => {
+        val choice: CssSel = if (!prizes.isEmpty) {
+          "@text1" #> "is a winner. Choose a prize:" &
+            "@text2" #> "Or mark if the person is not here:" &
+            "@currentPrizes" #> currentPrizesAndPhotoNode &
+            "@currentWinner" #> currentWinnerNode &
+            "@choiceNo" #> ajaxButton("Not here", () => updateWinner, "class" -> "ovalbtn btn btn-danger")
+        } else if (!winners.get.isEmpty)
+          "@send" #> sendNode
+        else
+          ClearClearable
 
-    "@winners" #> winnersNode & choice
+        "@winners" #> winnersNode & choice
+      }
+    }
   }
 }
 
