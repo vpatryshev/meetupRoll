@@ -55,9 +55,9 @@ class WinnerChoice {
 
   import WinnerChoice._
 
-  var currentWinner: Attendant = Meetup.pickWinner()
+  var currentWinner: Option[Attendant] = Meetup.pickWinner()
 
-  def currentWinnerNode = <span>{currentWinner.name}</span>
+  def currentWinnerNode = currentWinner.map{winner => <span>{winner.name}</span>}
 
   def sendNode: NodeSeq = {
     def sendButtonNode =
@@ -111,13 +111,12 @@ class WinnerChoice {
   }
 
   private def updateWinner(): JsCmd = {
-    if (remainingPrizes.get.get.isEmpty) {
+    currentWinner = Meetup.pickWinner()
+    if (remainingPrizes.get.get.isEmpty || currentWinner.isEmpty)
       JsHideId("winnerChoice") & SetHtml("winners", winnersNode) & SetHtml("send", sendNode)
-    } else {
-      currentWinner = Meetup.pickWinner()
-      SetHtml("currentWinner", currentWinnerNode) & SetHtml("winners", winnersNode) &
+    else
+      SetHtml("currentWinner", currentWinnerNode.get) & SetHtml("winners", winnersNode) &
         SetHtml("currentPrizes", currentPrizesAndPhotoNode)
-    }
   }
 
   def currentPrizesAndPhotoNode = {
@@ -125,7 +124,7 @@ class WinnerChoice {
 
     def prizeButtonNode(prize: Prize) =
       ajaxButton(prize.name, () => {
-        winners.set(Winner(currentWinner, prize.name) :: winners.get)
+        winners.set(Winner(currentWinner.get, prize.name) :: winners.get)
         val remainingQuantity: Int = remainingPrizes.get.get(prize)
         remainingPrizes.set(Some(remainingPrizes.get.get - prize))
         if (remainingQuantity > 1)
@@ -134,7 +133,7 @@ class WinnerChoice {
       }, "class" -> "btn btn-success ovalbtn prizelabel")
     <span class="row">
       {
-        currentWinner.photo.map(photo =>
+        currentWinner.get.photo.map(photo =>
                   <span class="span2 prizephoto"><img src={photo}/></span>
             ).getOrElse(
                   <span class="span2"/>)
@@ -164,7 +163,7 @@ class WinnerChoice {
     remainingPrizes.get match {
       case None => S.redirectTo("/")
       case Some(prizes) => {
-        val choice: CssSel = if (!prizes.isEmpty) {
+        val choice: CssSel = if (!prizes.isEmpty && currentWinner.isDefined) {
           "@text1" #> "is a winner. Choose a prize:" &
             "@text2" #> "Or mark if the person is not here:" &
             "@currentPrizes" #> currentPrizesAndPhotoNode &
