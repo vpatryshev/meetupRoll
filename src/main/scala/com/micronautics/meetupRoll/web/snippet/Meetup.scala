@@ -2,7 +2,7 @@ package com.micronautics.meetupRoll.web.snippet
 
 import xml._
 import com.typesafe.config.{ConfigObject, ConfigFactory}
-import java.net.{URL, URLDecoder}
+import java.net.{UnknownHostException, URL, URLDecoder}
 import scalax.io.Codec
 import net.liftweb.util.BindHelpers._
 import net.liftweb.http.SHtml._
@@ -35,18 +35,22 @@ object Meetup {
 
   private def meetup = chosenMeetup.get
 
-  private def participantNumber = MeetupData.unbox(chosenMeetup.get).participants.length
+  private def participantNumber = MeetupData.unbox(meetup).participants.length
 
   private def attendants = participantCrowd.get
 
-  def pickWinner(): Attendant = {
+  def pickWinner(): Option[Attendant] = {
     def normalizeName(name: String) = {
       Normalizer.normalize(name, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "")  }
 
-    val randomAttendant = attendants(random.nextInt(attendants.length))
+    if (attendants.isEmpty)
+      None
+    else {
+      val randomAttendant = attendants(random.nextInt(attendants.length))
 
-    participantCrowd.set(attendants - randomAttendant)
-    randomAttendant.copy(name = normalizeName(randomAttendant.name))
+      participantCrowd.set(attendants - randomAttendant)
+      Some(randomAttendant.copy(name = normalizeName(randomAttendant.name)))
+    }
   }
 
   def reloadParticipantCrowd() = participantCrowd.set(MeetupData.unbox(meetup).participants.toBuffer)
@@ -91,7 +95,11 @@ object MeetupData {
   def unbox(tried: Try[MeetupData]): MeetupData = tried match {
     case Success(x) => x
     case Failure(error) => {
-      error.printStackTrace()
+      error match {
+        case _ : UnknownHostException => println("[ERROR] " + error.getClass.getCanonicalName + " " + error.getMessage)
+        case _ => error.printStackTrace()
+      }
+
       stub
     }
   }
